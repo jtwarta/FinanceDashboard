@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personal Finance Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { background: #0f172a; }
+    .glass { background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(8px); }
+  </style>
+</head>
+<body class="min-h-screen text-white">
+  <div class="fixed inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-emerald-900/20 via-transparent to-transparent"></div>
+  </div>
+
+  <div id="app" class="relative max-w-6xl mx-auto px-4 py-6">
+    <header class="flex items-center justify-between mb-6 flex-wrap gap-4">
+      <div>
+        <h1 class="text-2xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Personal Finance Hub</h1>
+        <p id="lastDate" class="text-slate-500 text-sm"></p>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="fetchTime" class="text-xs text-slate-500"></span>
+        <button onclick="loadData()" id="refreshBtn" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700">
+          <svg id="refreshIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+          <span class="text-sm">Refresh</span>
+        </button>
+      </div>
+    </header>
+
+    <div id="loading" class="flex justify-center py-16">
+      <div class="w-10 h-10 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin"></div>
+    </div>
+
+    <div id="error" class="hidden rounded-2xl border border-rose-500/30 bg-rose-500/10 p-6 text-center">
+      <svg class="w-8 h-8 text-rose-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+      <p class="text-rose-300 mb-2">Failed to fetch data</p>
+      <p id="errorMsg" class="text-xs text-rose-400/70 mb-4"></p>
+      <button onclick="loadData()" class="px-4 py-2 rounded-lg bg-rose-500/20 border border-rose-500/40 text-rose-300 hover:bg-rose-500/30 text-sm">Retry</button>
+    </div>
+
+    <div id="content" class="hidden space-y-8">
+      <!-- Net Worth Section -->
+      <section>
+        <h2 class="text-lg font-semibold text-white flex items-center gap-2 mb-4">
+          <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+          Net Worth Overview
+        </h2>
+        
+        <!-- Top row: main stats with YTD trends -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+          <div class="rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 p-5">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Net Worth</p>
+            <p id="netWorth" class="text-2xl font-bold">-</p>
+            <p id="netWorthBTC" class="text-xs text-slate-400"></p>
+            <p id="netWorthTrend" class="mt-2 text-xs font-medium"></p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/5 border border-blue-500/30 p-5">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Total Assets</p>
+            <p id="totalAssets" class="text-2xl font-bold">-</p>
+            <p id="assetsTrend" class="mt-2 text-xs font-medium"></p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-5">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Total Liabilities</p>
+            <p id="totalLiab" class="text-2xl font-bold">-</p>
+            <p id="liabTrend" class="mt-2 text-xs font-medium"></p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-orange-500/20 to-orange-600/5 border border-orange-500/30 p-5">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">BTC Stack</p>
+            <p id="btcStack" class="text-2xl font-bold">-</p>
+            <p id="btcPrice" class="text-xs text-slate-400"></p>
+            <p id="btcTrend" class="mt-2 text-xs font-medium"></p>
+          </div>
+        </div>
+
+        <!-- Jon & Lenora boxes - moved above chart -->
+        <div class="grid grid-cols-2 gap-4 mb-5">
+          <div class="rounded-2xl border border-blue-500/30 bg-blue-500/10 p-4">
+            <p class="text-sm text-blue-300">Jon</p>
+            <p id="jonNW" class="text-xl font-bold">-</p>
+          </div>
+          <div class="rounded-2xl border border-violet-500/30 bg-violet-500/10 p-4">
+            <p class="text-sm text-violet-300">Lenora</p>
+            <p id="lenoraNW" class="text-xl font-bold">-</p>
+          </div>
+        </div>
+
+        <!-- Net Worth History Chart: Blue=USD, Orange=BTC -->
+        <div class="rounded-2xl border border-slate-700/50 glass p-4 mb-5">
+          <h3 class="text-sm font-medium text-white mb-1">Net Worth History</h3>
+          <p class="text-xs text-slate-500 mb-3"><span class="text-blue-400">■</span> USD &nbsp; <span class="text-orange-400">■</span> BTC</p>
+          <div style="height: 200px; position: relative;">
+            <canvas id="nwChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Asset breakdown -->
+        <div class="grid grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
+          <div class="rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/5 border border-blue-500/30 p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Home</p>
+            <p id="homeVal" class="text-lg font-bold">-</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-violet-500/20 to-violet-600/5 border border-violet-500/30 p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">IRA</p>
+            <p id="iraVal" class="text-lg font-bold">-</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-orange-500/20 to-orange-600/5 border border-orange-500/30 p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Bitcoin</p>
+            <p id="btcVal" class="text-lg font-bold">-</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Cash</p>
+            <p id="cashVal" class="text-lg font-bold">-</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-cyan-500/20 to-cyan-600/5 border border-cyan-500/30 p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Cars</p>
+            <p id="carsVal" class="text-lg font-bold">-</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/5 border border-amber-500/30 p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Home Equity</p>
+            <p id="homeEqVal" class="text-lg font-bold">-</p>
+          </div>
+        </div>
+
+        <!-- Liabilities breakdown -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Mortgage</p>
+            <p id="mortgageVal" class="text-lg font-bold">-</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">HELOC</p>
+            <p id="helocVal" class="text-lg font-bold">-</p>
+          </div>
+          <div id="studentCard" class="rounded-2xl p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Student Loans</p>
+            <p id="studentVal" class="text-lg font-bold">-</p>
+          </div>
+          <div id="carLoanCard" class="rounded-2xl p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Car Loan</p>
+            <p id="carLoanVal" class="text-lg font-bold">-</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Cash Flow Section -->
+      <section>
+        <h2 class="text-lg font-semibold text-white flex items-center gap-2 mb-4">
+          <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path></svg>
+          Cash Flow <span id="cfYear" class="text-slate-500 text-sm font-normal ml-2"></span>
+        </h2>
+
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-5">
+          <div class="rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 p-5">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Take-Home</p>
+            <p id="takeHome" class="text-2xl font-bold">-</p>
+            <p class="text-xs text-slate-500">monthly avg</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-5">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Expenses</p>
+            <p id="expenses" class="text-2xl font-bold">-</p>
+            <p class="text-xs text-slate-500">monthly avg</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/5 border border-amber-500/30 p-5">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Taxes</p>
+            <p id="monthlyTax" class="text-2xl font-bold">-</p>
+            <p id="taxRate" class="text-xs text-slate-500"></p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/5 border border-blue-500/30 p-5">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Net Inflow</p>
+            <p id="netInflow" class="text-2xl font-bold">-</p>
+            <p class="text-xs text-slate-500">monthly avg</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-violet-500/20 to-violet-600/5 border border-violet-500/30 p-5">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">IRA Contrib</p>
+            <p id="iraContrib" class="text-2xl font-bold">-</p>
+            <p class="text-xs text-slate-500">monthly avg</p>
+          </div>
+        </div>
+
+        <!-- Bills Chart -->
+        <div class="rounded-2xl border border-slate-700/50 glass p-4">
+          <h3 class="text-sm font-medium text-white mb-3">Monthly Bills</h3>
+          <div style="height: 200px; position: relative;">
+            <canvas id="billsChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- Status -->
+      <div class="rounded-xl border border-slate-700/50 bg-slate-800/20 p-3 flex gap-6">
+        <div class="flex items-center gap-2">
+          <div id="nwStatus" class="w-3 h-3 rounded-full bg-emerald-400"></div>
+          <span class="text-xs text-slate-400">Net Worth</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div id="cfStatus" class="w-3 h-3 rounded-full bg-emerald-400"></div>
+          <span class="text-xs text-slate-400">Cash Flow</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = {
+      netWorth: 'https://script.google.com/macros/s/AKfycbwNpO22WV5YDDcVNBj_tmcpulFqh1koLjiSylo4M_GLZENsfZCPujAvQWB7m-_YhyK-/exec',
+      cashFlow: 'https://script.google.com/macros/s/AKfycbz8PFG22RExCfmgzvdvU2z-qeMiTYfXNiwfQ_K_0TmvWav-n5ucP8u_l5yZU-iW9GOUSw/exec'
+    };
+
+    let nwChart = null;
+    let billsChart = null;
+
+    const fmt = (v, compact) => {
+      if (v == null || v === '' || isNaN(v)) return '$0';
+      const n = typeof v === 'string' ? parseFloat(v.replace(/[$,]/g, '')) : v;
+      if (compact && Math.abs(n) >= 1e6) return `$${(n/1e6).toFixed(2)}M`;
+      if (compact && Math.abs(n) >= 1e3) return `$${(n/1e3).toFixed(0)}K`;
+      return n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+    };
+
+    const fmtBTC = v => v ? `${parseFloat(v).toFixed(4)} BTC` : '0 BTC';
+    const fmtDate = d => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', year: '2-digit' }) : '';
+
+    /*
+      Net Worth Sheet Row Mapping (0-indexed array):
+      Row 1 (idx 0): Date
+      Row 2 (idx 1): BTC Price
+      Row 3 (idx 2): BTC Stack (combined)
+      Row 4 (idx 3): Net Worth in BTC (combined)
+      Row 5 (idx 4): Net Worth USD (combined)
+      Row 6 (idx 5): Assets (combined)
+      Row 7 (idx 6): Liabilities (combined)
+      
+      Jon's section (rows 8-19, idx 7-18):
+      Row 8 (idx 7): Jon's Net Worth
+      Row 9 (idx 8): Jon's Assets
+      Row 10 (idx 9): Jon's Liabilities
+      Row 11 (idx 10): Home Value
+      Row 12 (idx 11): IRA
+      Row 13 (idx 12): Jon's BTC
+      Row 14 (idx 13): Jon's Car
+      Row 15 (idx 14): Jon's Cash
+      Row 16 (idx 15): Car Loan
+      Row 17 (idx 16): HELOC
+      Row 18 (idx 17): Student Loans
+      Row 19 (idx 18): Mortgage
+      
+      Lenora's section (rows 20-26, idx 19-25):
+      Row 20 (idx 19): Lenora's Net Worth
+      Row 21 (idx 20): Lenora's Assets
+      Row 22 (idx 21): Lenora's Liabilities
+      Row 23 (idx 22): Lenora's IRA
+      Row 24 (idx 23): Lenora's Car
+      Row 25 (idx 24): Lenora's Cash
+      Row 26 (idx 25): Lenora's Student Loans
+    */
+
+    const parseNW = raw => {
+      if (!raw?.sheets?.['Net Worth USD/BTC']) return null;
+      const rows = raw.sheets['Net Worth USD/BTC'];
+      const dates = rows[0].slice(2);
+      const last = dates.length - 1;
+      const get = (r, c = last) => { 
+        const v = rows[r]?.[c + 2]; 
+        return typeof v === 'number' ? v : parseFloat(v) || 0; 
+      };
+      
+      // Find Jan 1 of current year for YTD calculation
+      const currentYear = new Date().getFullYear();
+      let ytdIdx = 0;
+      for (let i = 0; i < dates.length; i++) {
+        const d = new Date(dates[i]);
+        if (d.getFullYear() === currentYear) {
+          ytdIdx = i;
+          break;
+        }
+      }
+      
+      // Build time series with both USD and BTC values
+      const series = dates.map((d, i) => ({ 
+        date: fmtDate(d), 
+        nwUSD: get(4, i),
+        nwBTC: get(3, i),
+        btcPrice: get(1, i)
+      })).filter(x => x.nwUSD > 0);
+      
+      // Current values
+      const btcPrice = get(1);
+      const btcStack = get(2);
+      const home = get(10);
+      const mortgage = get(18);
+      const heloc = get(16);
+      const homeEq = home - mortgage - heloc;
+      const btcVal = btcStack * btcPrice;
+      const jonCar = get(13);
+      const lenoraCar = get(23);
+      const cars = jonCar + lenoraCar;
+      const jonCash = get(14);
+      const lenoraCash = get(24);
+      const cash = jonCash + lenoraCash;
+      const jonIRA = get(11);
+      const lenoraIRA = get(22);
+      const ira = jonIRA + lenoraIRA;
+      
+      return {
+        cur: { 
+          btcPrice, btcStack, nwBTC: get(3), nwUSD: get(4), assets: get(5), liab: get(6),
+          jonNW: get(7), lenoraNW: get(19),
+          home, ira, btcVal, cash, cars, homeEq,
+          mortgage, heloc, studentLoans: get(17) + get(25), carLoan: get(15)
+        },
+        ytd: { 
+          nwUSD: get(4, ytdIdx), 
+          assets: get(5, ytdIdx), 
+          liab: get(6, ytdIdx),
+          btcStack: get(2, ytdIdx)
+        },
+        series, 
+        lastDate: fmtDate(dates[last])
+      };
+    };
+
+    /*
+      Cash Flow "Expenses and Income" tab:
+      Columns: 0=label, 1=category, 2=2026, 3=2025, 4=2024...
+      
+      Rows (0-indexed):
+      Row 1: Take-Home Pay
+      Row 4: IRA Contributions
+      Row 23: Total Expenses
+      Row 24: Net Equity Inflow
+      
+      Use column 3 (2025) as the most recent complete year
+    */
+
+    const parseCF = raw => {
+      if (!raw?.sheets) return null;
+      const exp = raw.sheets['Expenses and Income'];
+      const bills = raw.sheets['Bills'];
+      const taxes = raw.sheets['Taxes and IRA'];
+      
+      // Column 3 = 2025 (most recent complete year)
+      const yearCol = 3;
+      const year = exp[0]?.[yearCol] || 2025;
+      const get = (r) => { 
+        const v = exp[r]?.[yearCol]; 
+        return typeof v === 'number' ? v : parseFloat(v) || 0; 
+      };
+      
+      // Get taxes from Taxes and IRA sheet for 2024 (last complete year)
+      // Column 1 = Gross Income (Joint), Column 14 = Federal Tax Due, Column 15 = State Tax Due
+      let monthlyTax = 0;
+      let taxRate = 0;
+      if (taxes) {
+        for (let i = 1; i < taxes.length; i++) {
+          if (taxes[i][0] === 2024 || taxes[i][0] === '2024') {
+            const grossPay = taxes[i][1] || 0;
+            const fedTax = taxes[i][14] || 0;
+            const stateTax = taxes[i][15] || 0;
+            const totalTax = fedTax + stateTax;
+            monthlyTax = totalTax / 12;
+            taxRate = grossPay > 0 ? (totalTax / grossPay) * 100 : 0;
+            break;
+          }
+        }
+      }
+      
+      // Parse bills - only include months where water, energy, AND trash are all non-zero
+      const billsData = [];
+      if (bills) {
+        for (let i = 1; i < bills.length; i++) {
+          const row = bills[i];
+          if (!row[0]) continue;
+          const water = row[1] || 0;
+          const energy = row[2] || 0;
+          const trash = row[3] || 0;
+          const internet = row[4] || 0;
+          
+          // Only include if water, energy, and trash are all non-zero
+          if (water > 0 && energy > 0 && trash > 0) {
+            billsData.push({ month: row[0], water, energy, trash, internet });
+          }
+        }
+      }
+      
+      return {
+        year,
+        takeHome: get(1),
+        expenses: get(23),
+        netInflow: get(24),
+        ira: get(4),
+        monthlyTax,
+        taxRate,
+        bills: billsData.reverse()
+      };
+    };
+
+    const setYTDTrend = (el, cur, ytd) => {
+      if (!ytd || ytd === 0) return;
+      const pct = ((cur - ytd) / Math.abs(ytd)) * 100;
+      el.textContent = `${pct >= 0 ? '↑' : '↓'} ${Math.abs(pct).toFixed(1)}% YTD`;
+      el.className = `mt-2 text-xs font-medium ${pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+    };
+
+    const renderNW = nw => {
+      document.getElementById('lastDate').textContent = `Data: ${nw.lastDate}`;
+      document.getElementById('netWorth').textContent = fmt(nw.cur.nwUSD, true);
+      document.getElementById('netWorthBTC').textContent = fmtBTC(nw.cur.nwBTC);
+      document.getElementById('totalAssets').textContent = fmt(nw.cur.assets, true);
+      document.getElementById('totalLiab').textContent = fmt(nw.cur.liab, true);
+      document.getElementById('btcStack').textContent = fmtBTC(nw.cur.btcStack);
+      document.getElementById('btcPrice').textContent = `@ ${fmt(nw.cur.btcPrice)}`;
+
+      // YTD trends
+      setYTDTrend(document.getElementById('netWorthTrend'), nw.cur.nwUSD, nw.ytd.nwUSD);
+      setYTDTrend(document.getElementById('assetsTrend'), nw.cur.assets, nw.ytd.assets);
+      setYTDTrend(document.getElementById('liabTrend'), nw.cur.liab, nw.ytd.liab);
+      setYTDTrend(document.getElementById('btcTrend'), nw.cur.btcStack, nw.ytd.btcStack);
+
+      // Jon & Lenora
+      document.getElementById('jonNW').textContent = fmt(nw.cur.jonNW, true);
+      document.getElementById('lenoraNW').textContent = fmt(nw.cur.lenoraNW, true);
+
+      // Assets
+      document.getElementById('homeVal').textContent = fmt(nw.cur.home, true);
+      document.getElementById('iraVal').textContent = fmt(nw.cur.ira, true);
+      document.getElementById('btcVal').textContent = fmt(nw.cur.btcVal, true);
+      document.getElementById('cashVal').textContent = fmt(nw.cur.cash, true);
+      document.getElementById('carsVal').textContent = fmt(nw.cur.cars, true);
+      document.getElementById('homeEqVal').textContent = fmt(nw.cur.homeEq, true);
+
+      // Liabilities
+      document.getElementById('mortgageVal').textContent = fmt(nw.cur.mortgage, true);
+      document.getElementById('helocVal').textContent = fmt(nw.cur.heloc, true);
+      
+      const studentCard = document.getElementById('studentCard');
+      const studentVal = document.getElementById('studentVal');
+      if (nw.cur.studentLoans === 0) {
+        studentCard.className = 'rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 p-3';
+        studentVal.textContent = '✓ Paid';
+      } else {
+        studentCard.className = 'rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-3';
+        studentVal.textContent = fmt(nw.cur.studentLoans, true);
+      }
+
+      const carLoanCard = document.getElementById('carLoanCard');
+      const carLoanVal = document.getElementById('carLoanVal');
+      if (nw.cur.carLoan === 0) {
+        carLoanCard.className = 'rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 p-3';
+        carLoanVal.textContent = '✓ Paid';
+      } else {
+        carLoanCard.className = 'rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-3';
+        carLoanVal.textContent = fmt(nw.cur.carLoan, true);
+      }
+
+      // Net Worth Chart with dual axis (USD blue, BTC orange)
+      const ctx = document.getElementById('nwChart').getContext('2d');
+      if (nwChart) nwChart.destroy();
+      nwChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: nw.series.map(d => d.date),
+          datasets: [
+            {
+              label: 'USD',
+              data: nw.series.map(d => d.nwUSD),
+              borderColor: '#3b82f6',
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              fill: true,
+              tension: 0.3,
+              pointRadius: 0,
+              yAxisID: 'y'
+            },
+            {
+              label: 'BTC',
+              data: nw.series.map(d => d.nwBTC),
+              borderColor: '#f97316',
+              backgroundColor: 'transparent',
+              fill: false,
+              tension: 0.3,
+              pointRadius: 0,
+              yAxisID: 'y1'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 }, maxRotation: 45 } },
+            y: { 
+              type: 'linear',
+              position: 'left',
+              grid: { color: 'rgba(100,116,139,0.2)' }, 
+              ticks: { color: '#3b82f6', font: { size: 10 }, callback: v => `$${(v/1e6).toFixed(1)}M` }
+            },
+            y1: {
+              type: 'linear',
+              position: 'right',
+              grid: { display: false },
+              ticks: { color: '#f97316', font: { size: 10 }, callback: v => `${v.toFixed(0)} BTC` }
+            }
+          }
+        }
+      });
+    };
+
+    const renderCF = cf => {
+      document.getElementById('cfYear').textContent = `(${cf.year} avg)`;
+      document.getElementById('takeHome').textContent = fmt(cf.takeHome);
+      document.getElementById('expenses').textContent = fmt(cf.expenses);
+      document.getElementById('monthlyTax').textContent = fmt(cf.monthlyTax);
+      document.getElementById('taxRate').textContent = `${cf.taxRate.toFixed(1)}% of gross (2024)`;
+      document.getElementById('netInflow').textContent = fmt(cf.netInflow);
+      document.getElementById('iraContrib').textContent = fmt(cf.ira);
+
+      // Bills line chart
+      const ctx = document.getElementById('billsChart').getContext('2d');
+      if (billsChart) billsChart.destroy();
+      billsChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: cf.bills.map(b => b.month),
+          datasets: [
+            { label: 'Energy', data: cf.bills.map(b => b.energy), borderColor: '#f97316', backgroundColor: 'transparent', tension: 0.3, pointRadius: 2 },
+            { label: 'Water', data: cf.bills.map(b => b.water), borderColor: '#3b82f6', backgroundColor: 'transparent', tension: 0.3, pointRadius: 2 },
+            { label: 'Internet', data: cf.bills.map(b => b.internet), borderColor: '#8b5cf6', backgroundColor: 'transparent', tension: 0.3, pointRadius: 2 },
+            { label: 'Trash', data: cf.bills.map(b => b.trash), borderColor: '#64748b', backgroundColor: 'transparent', tension: 0.3, pointRadius: 2 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: { 
+            legend: { 
+              display: true, 
+              position: 'top',
+              labels: { color: '#94a3b8', boxWidth: 12, padding: 10, font: { size: 10 } }
+            } 
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 9 }, maxRotation: 45 } },
+            y: { grid: { color: 'rgba(100,116,139,0.2)' }, ticks: { color: '#64748b', font: { size: 10 }, callback: v => `$${v}` } }
+          }
+        }
+      });
+    };
+
+    const showLoading = show => {
+      document.getElementById('loading').classList.toggle('hidden', !show);
+      document.getElementById('refreshIcon').classList.toggle('animate-spin', show);
+    };
+
+    const showError = (msg) => {
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('content').classList.add('hidden');
+      document.getElementById('error').classList.remove('hidden');
+      document.getElementById('errorMsg').textContent = msg;
+    };
+
+    const showContent = () => {
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('error').classList.add('hidden');
+      document.getElementById('content').classList.remove('hidden');
+    };
+
+    async function loadData() {
+      showLoading(true);
+      let nwData = null, cfData = null, nwErr = null, cfErr = null;
+
+      try {
+        const r = await fetch(API.netWorth);
+        nwData = await r.json();
+        document.getElementById('nwStatus').className = 'w-3 h-3 rounded-full bg-emerald-400';
+      } catch (e) {
+        nwErr = e.message;
+        document.getElementById('nwStatus').className = 'w-3 h-3 rounded-full bg-rose-400';
+      }
+
+      try {
+        const r = await fetch(API.cashFlow);
+        cfData = await r.json();
+        document.getElementById('cfStatus').className = 'w-3 h-3 rounded-full bg-emerald-400';
+      } catch (e) {
+        cfErr = e.message;
+        document.getElementById('cfStatus').className = 'w-3 h-3 rounded-full bg-rose-400';
+      }
+
+      showLoading(false);
+      document.getElementById('fetchTime').textContent = new Date().toLocaleTimeString();
+
+      if (!nwData && !cfData) {
+        showError(nwErr || cfErr || 'Unknown error');
+        return;
+      }
+
+      showContent();
+
+      if (nwData) {
+        const nw = parseNW(nwData);
+        if (nw) renderNW(nw);
+      }
+
+      if (cfData) {
+        const cf = parseCF(cfData);
+        if (cf) renderCF(cf);
+      }
+    }
+
+    loadData();
+  </script>
+</body>
+</html>
