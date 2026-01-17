@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -10,6 +9,70 @@
   <style>
     body { background: #0f172a; }
     .glass { background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(8px); }
+    
+    /* Tooltip system */
+    .tooltip-wrapper {
+      position: relative;
+    }
+    .tooltip-content {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(100, 116, 139, 0.4);
+      border-radius: 12px;
+      padding: 12px 16px;
+      min-width: 200px;
+      max-width: 280px;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s, visibility 0.2s;
+      z-index: 50;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    }
+    .tooltip-content::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 8px solid transparent;
+      border-top-color: rgba(100, 116, 139, 0.4);
+    }
+    .tooltip-wrapper:hover .tooltip-content {
+      opacity: 1;
+      visibility: visible;
+    }
+    .tooltip-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(100, 116, 139, 0.2);
+    }
+    .tooltip-row:last-child {
+      border-bottom: none;
+    }
+    .tooltip-label {
+      color: #94a3b8;
+      font-size: 12px;
+    }
+    .tooltip-value {
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .tooltip-title {
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(100, 116, 139, 0.3);
+    }
   </style>
 </head>
 <body class="min-h-screen text-white">
@@ -32,375 +95,516 @@
       </div>
     </header>
 
-```
-<div id="loading" class="flex justify-center py-16">
-  <div class="w-10 h-10 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin"></div>
-</div>
-
-<div id="error" class="hidden rounded-2xl border border-rose-500/30 bg-rose-500/10 p-6 text-center">
-  <svg class="w-8 h-8 text-rose-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-  <p class="text-rose-300 mb-2">Failed to fetch data</p>
-  <p id="errorMsg" class="text-xs text-rose-400/70 mb-4"></p>
-  <button onclick="loadData()" class="px-4 py-2 rounded-lg bg-rose-500/20 border border-rose-500/40 text-rose-300 hover:bg-rose-500/30 text-sm">Retry</button>
-</div>
-
-<div id="content" class="hidden space-y-8">
-  <!-- Net Worth Section -->
-  <section>
-    <h2 class="text-lg font-semibold text-white flex items-center gap-2 mb-4">
-      <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-      Net Worth Overview
-    </h2>
-    
-    <!-- Top row: main stats with YTD trends -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-      <div class="rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 p-5">
-        <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Net Worth</p>
-        <p id="netWorth" class="text-2xl font-bold">-</p>
-        <p id="netWorthBTC" class="text-xs text-slate-400"></p>
-        <p id="netWorthTrend" class="mt-2 text-xs font-medium"></p>
-      </div>
-      <div class="rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/5 border border-blue-500/30 p-5">
-        <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Total Assets</p>
-        <p id="totalAssets" class="text-2xl font-bold">-</p>
-        <p id="assetsTrend" class="mt-2 text-xs font-medium"></p>
-      </div>
-      <div class="rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-5">
-        <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Total Liabilities</p>
-        <p id="totalLiab" class="text-2xl font-bold">-</p>
-        <p id="liabTrend" class="mt-2 text-xs font-medium"></p>
-      </div>
-      <div class="rounded-2xl bg-gradient-to-br from-orange-500/20 to-orange-600/5 border border-orange-500/30 p-5">
-        <p class="text-xs font-medium uppercase tracking-wider text-slate-400">BTC Stack</p>
-        <p id="btcStack" class="text-2xl font-bold">-</p>
-        <p id="btcPrice" class="text-xs text-slate-400"></p>
-        <p id="btcTrend" class="mt-2 text-xs font-medium"></p>
-      </div>
+    <div id="loading" class="flex justify-center py-16">
+      <div class="w-10 h-10 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin"></div>
     </div>
 
-    <!-- Jon & Lenora boxes - moved above chart -->
-    <div class="grid grid-cols-2 gap-4 mb-5">
-      <div class="rounded-2xl border border-blue-500/30 bg-blue-500/10 p-4">
-        <p class="text-sm text-blue-300">Jon</p>
-        <p id="jonNW" class="text-xl font-bold">-</p>
-      </div>
-      <div class="rounded-2xl border border-violet-500/30 bg-violet-500/10 p-4">
-        <p class="text-sm text-violet-300">Lenora</p>
-        <p id="lenoraNW" class="text-xl font-bold">-</p>
-      </div>
+    <div id="error" class="hidden rounded-2xl border border-rose-500/30 bg-rose-500/10 p-6 text-center">
+      <svg class="w-8 h-8 text-rose-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+      <p class="text-rose-300 mb-2">Failed to fetch data</p>
+      <p id="errorMsg" class="text-xs text-rose-400/70 mb-4"></p>
+      <button onclick="loadData()" class="px-4 py-2 rounded-lg bg-rose-500/20 border border-rose-500/40 text-rose-300 hover:bg-rose-500/30 text-sm">Retry</button>
     </div>
 
-    <!-- Net Worth History Chart: Blue=USD, Orange=BTC -->
-    <div class="rounded-2xl border border-slate-700/50 glass p-4 mb-5">
-      <div class="flex justify-between items-start mb-1">
-        <h3 class="text-sm font-medium text-white">Net Worth History</h3>
-        <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">historical data</span>
-      </div>
-      <p class="text-xs text-slate-500 mb-3"><span class="text-blue-400">■</span> USD &nbsp; <span class="text-orange-400">■</span> BTC</p>
-      <div style="height: 200px; position: relative;">
-        <canvas id="nwChart"></canvas>
-      </div>
-    </div>
+    <div id="content" class="hidden space-y-8">
+      <!-- Net Worth Section -->
+      <section>
+        <h2 class="text-lg font-semibold text-white flex items-center gap-2 mb-4">
+          <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+          Net Worth Overview
+        </h2>
+        
+        <!-- Top row: main stats with YTD trends -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+          <div class="rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 p-5">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Net Worth</p>
+            <p id="netWorth" class="text-2xl font-bold">-</p>
+            <p id="netWorthBTC" class="text-xs text-slate-400"></p>
+            <p id="netWorthTrend" class="mt-2 text-xs font-medium"></p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/5 border border-blue-500/30 p-5">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Total Assets</p>
+            <p id="totalAssets" class="text-2xl font-bold">-</p>
+            <p id="assetsTrend" class="mt-2 text-xs font-medium"></p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-5">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Total Liabilities</p>
+            <p id="totalLiab" class="text-2xl font-bold">-</p>
+            <p id="liabTrend" class="mt-2 text-xs font-medium"></p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-orange-500/20 to-orange-600/5 border border-orange-500/30 p-5">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">BTC Stack</p>
+            <p id="btcStack" class="text-2xl font-bold">-</p>
+            <p id="btcPrice" class="text-xs text-slate-400"></p>
+            <p id="btcTrend" class="mt-2 text-xs font-medium"></p>
+          </div>
+        </div>
 
-    <!-- Asset breakdown -->
-    <div class="grid grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
-      <div class="rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/5 border border-blue-500/30 p-3">
-        <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Home</p>
-        <p id="homeVal" class="text-lg font-bold">-</p>
-      </div>
-      <div class="rounded-2xl bg-gradient-to-br from-violet-500/20 to-violet-600/5 border border-violet-500/30 p-3">
-        <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">IRA</p>
-        <p id="iraVal" class="text-lg font-bold">-</p>
-      </div>
-      <div class="rounded-2xl bg-gradient-to-br from-orange-500/20 to-orange-600/5 border border-orange-500/30 p-3">
-        <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Bitcoin</p>
-        <p id="btcVal" class="text-lg font-bold">-</p>
-      </div>
-      <div class="rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 p-3">
-        <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Cash</p>
-        <p id="cashVal" class="text-lg font-bold">-</p>
-      </div>
-      <div class="rounded-2xl bg-gradient-to-br from-cyan-500/20 to-cyan-600/5 border border-cyan-500/30 p-3">
-        <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Cars</p>
-        <p id="carsVal" class="text-lg font-bold">-</p>
-      </div>
-      <div class="rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/5 border border-amber-500/30 p-3">
-        <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Home Equity</p>
-        <p id="homeEqVal" class="text-lg font-bold">-</p>
-      </div>
-    </div>
+        <!-- Jon & Lenora boxes - moved above chart -->
+        <div class="grid grid-cols-2 gap-4 mb-5">
+          <div class="rounded-2xl border border-blue-500/30 bg-blue-500/10 p-4">
+            <p class="text-sm text-blue-300">Jon</p>
+            <p id="jonNW" class="text-xl font-bold">-</p>
+          </div>
+          <div class="rounded-2xl border border-violet-500/30 bg-violet-500/10 p-4">
+            <p class="text-sm text-violet-300">Lenora</p>
+            <p id="lenoraNW" class="text-xl font-bold">-</p>
+          </div>
+        </div>
 
-    <!-- Liabilities breakdown -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      <div class="rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-3">
-        <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Mortgage</p>
-        <p id="mortgageVal" class="text-lg font-bold">-</p>
-      </div>
-      <div class="rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-3">
-        <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">HELOC</p>
-        <p id="helocVal" class="text-lg font-bold">-</p>
-      </div>
-      <div id="studentCard" class="rounded-2xl p-3">
-        <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Student Loans</p>
-        <p id="studentVal" class="text-lg font-bold">-</p>
-      </div>
-      <div id="carLoanCard" class="rounded-2xl p-3">
-        <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Car Loan</p>
-        <p id="carLoanVal" class="text-lg font-bold">-</p>
-      </div>
-    </div>
-  </section>
+        <!-- Net Worth History Chart: Blue=USD, Orange=BTC -->
+        <div class="rounded-2xl border border-slate-700/50 glass p-4 mb-5">
+          <div class="flex justify-between items-start mb-1">
+            <h3 class="text-sm font-medium text-white">Net Worth History</h3>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">historical data</span>
+          </div>
+          <p class="text-xs text-slate-500 mb-3"><span class="text-blue-400">■</span> USD &nbsp; <span class="text-orange-400">■</span> BTC</p>
+          <div style="height: 200px; position: relative;">
+            <canvas id="nwChart"></canvas>
+          </div>
+        </div>
 
-  <!-- Retirement Progress Section -->
-  <section>
-    <h2 class="text-lg font-semibold text-white flex items-center gap-2 mb-4">
-      <svg class="w-5 h-5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-      Financial Independence
-      <span class="text-[10px] px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-400 border border-teal-500/30 ml-2">projected</span>
-    </h2>
+        <!-- Asset breakdown -->
+        <div class="grid grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
+          <div class="rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/5 border border-blue-500/30 p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Home</p>
+            <p id="homeVal" class="text-lg font-bold">-</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-violet-500/20 to-violet-600/5 border border-violet-500/30 p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">IRA</p>
+            <p id="iraVal" class="text-lg font-bold">-</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-orange-500/20 to-orange-600/5 border border-orange-500/30 p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Bitcoin</p>
+            <p id="btcVal" class="text-lg font-bold">-</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Cash</p>
+            <p id="cashVal" class="text-lg font-bold">-</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-cyan-500/20 to-cyan-600/5 border border-cyan-500/30 p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Cars</p>
+            <p id="carsVal" class="text-lg font-bold">-</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/5 border border-amber-500/30 p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Home Equity</p>
+            <p id="homeEqVal" class="text-lg font-bold">-</p>
+          </div>
+        </div>
 
-    <!-- Hero Target Year -->
-    <div class="rounded-2xl bg-gradient-to-br from-emerald-500/10 via-teal-500/10 to-cyan-500/10 border border-emerald-500/30 p-6 mb-5 text-center">
-      <p class="text-sm font-medium uppercase tracking-wider text-slate-400 mb-2">Financial Independence Target</p>
-      <p id="retireHeroYear" class="text-6xl font-black bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">—</p>
-      <p class="text-slate-400 mt-2">
-        <span id="retireYears" class="text-white font-bold">—</span> years from now
-      </p>
-    </div>
+        <!-- Liabilities breakdown -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Mortgage</p>
+            <p id="mortgageVal" class="text-lg font-bold">-</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">HELOC</p>
+            <p id="helocVal" class="text-lg font-bold">-</p>
+          </div>
+          <div id="studentCard" class="rounded-2xl p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Student Loans</p>
+            <p id="studentVal" class="text-lg font-bold">-</p>
+          </div>
+          <div id="carLoanCard" class="rounded-2xl p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Car Loan</p>
+            <p id="carLoanVal" class="text-lg font-bold">-</p>
+          </div>
+        </div>
+      </section>
 
-    <!-- Stats Row -->
-    <div class="grid grid-cols-3 gap-4 mb-5">
-      <div class="rounded-2xl bg-gradient-to-br from-slate-700/30 to-slate-800/30 border border-slate-700/50 p-4 text-center">
-        <p class="text-xs font-medium uppercase tracking-wider text-slate-500">Current NW</p>
-        <p id="retireCurrentNW" class="text-xl font-bold text-white">-</p>
-        <p class="text-xs text-slate-500">live from sheet</p>
-      </div>
-      <div class="rounded-2xl bg-gradient-to-br from-slate-700/30 to-slate-800/30 border border-slate-700/50 p-4 text-center">
-        <p class="text-xs font-medium uppercase tracking-wider text-slate-500">Target NW</p>
-        <p id="retireTarget" class="text-xl font-bold text-white">-</p>
-        <p class="text-xs text-slate-500">35× expenses (tax-adj)</p>
-      </div>
-      <div class="rounded-2xl bg-gradient-to-br from-slate-700/30 to-slate-800/30 border border-slate-700/50 p-4 text-center">
-        <p class="text-xs font-medium uppercase tracking-wider text-slate-500">Target Year</p>
-        <p id="retireTargetYear" class="text-xl font-bold text-emerald-400">-</p>
-        <p class="text-xs text-slate-500">NW ≥ Required</p>
-      </div>
-    </div>
+      <!-- Retirement Progress Section -->
+      <section>
+        <h2 class="text-lg font-semibold text-white flex items-center gap-2 mb-4">
+          <svg class="w-5 h-5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+          Financial Independence
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-400 border border-teal-500/30 ml-2">projected</span>
+        </h2>
 
-    <!-- Projection Chart -->
-    <div class="rounded-2xl border border-slate-700/50 glass p-4 mb-5">
-      <div class="flex justify-between items-start mb-1">
-        <h3 class="text-sm font-medium text-white">Net Worth Projection</h3>
-        <span class="text-[10px] px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-400 border border-teal-500/30">projected</span>
-      </div>
-      <p class="text-xs text-slate-500 mb-3">
-        <span class="inline-block w-3 h-3 rounded-full bg-teal-400/50 border border-teal-400 mr-1"></span> Projected NW &nbsp; 
-        <span class="text-rose-400">┅┅</span> Required (35×) &nbsp;
-        <span class="text-amber-400">★</span> 2035 loans forgiven
-      </p>
-      <div style="height: 220px; position: relative;">
-        <canvas id="retireChart"></canvas>
-      </div>
-    </div>
+        <!-- Hero Target Year -->
+        <div class="rounded-2xl bg-gradient-to-br from-emerald-500/10 via-teal-500/10 to-cyan-500/10 border border-emerald-500/30 p-6 mb-5 text-center">
+          <p class="text-sm font-medium uppercase tracking-wider text-slate-400 mb-2">Financial Independence Target</p>
+          <p id="retireHeroYear" class="text-6xl font-black bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">—</p>
+          <p class="text-slate-400 mt-2">
+            <span id="retireYears" class="text-white font-bold">—</span> years from now
+          </p>
+        </div>
 
-    <!-- Collapsible Details -->
-    <div class="space-y-3">
-      <!-- Assumptions Toggle -->
-      <div class="rounded-2xl border border-slate-700/50 glass overflow-hidden">
-        <button onclick="toggleRetireSection('assumptions')" class="w-full flex items-center justify-between p-4 hover:bg-slate-700/20 transition-colors">
-          <span class="text-sm font-medium text-slate-300 flex items-center gap-2">
-            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-            Model Assumptions
-          </span>
-          <svg id="assumptionsChevron" class="w-5 h-5 text-slate-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-        </button>
-        <div id="assumptionsContent" class="hidden border-t border-slate-700/50 p-4 bg-slate-800/30">
-          <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-            <div>
-              <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Asset Growth</p>
-              <p class="text-slate-300">BTC: <span class="text-orange-400">10%</span>/yr</p>
-              <p class="text-slate-300">IRAs: <span class="text-violet-400">8%</span>/yr</p>
-              <p class="text-slate-300">Home: <span class="text-blue-400">5%</span>/yr</p>
-              <p class="text-slate-300">Cars: <span class="text-slate-400">-10%</span>/yr (deprec)</p>
+        <!-- Stats Row -->
+        <div class="grid grid-cols-3 gap-4 mb-5">
+          <div class="rounded-2xl bg-gradient-to-br from-slate-700/30 to-slate-800/30 border border-slate-700/50 p-4 text-center">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-500">Current NW</p>
+            <p id="retireCurrentNW" class="text-xl font-bold text-white">-</p>
+            <p class="text-xs text-slate-500">live from sheet</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-slate-700/30 to-slate-800/30 border border-slate-700/50 p-4 text-center">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-500">Target NW</p>
+            <p id="retireTarget" class="text-xl font-bold text-white">-</p>
+            <p class="text-xs text-slate-500">35× expenses (tax-adj)</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-slate-700/30 to-slate-800/30 border border-slate-700/50 p-4 text-center">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-500">Target Year</p>
+            <p id="retireTargetYear" class="text-xl font-bold text-emerald-400">-</p>
+            <p class="text-xs text-slate-500">NW ≥ Required</p>
+          </div>
+        </div>
+
+        <!-- Projection Chart -->
+        <div class="rounded-2xl border border-slate-700/50 glass p-4 mb-5">
+          <div class="flex justify-between items-start mb-1">
+            <h3 class="text-sm font-medium text-white">Net Worth Projection</h3>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-400 border border-teal-500/30">projected</span>
+          </div>
+          <p class="text-xs text-slate-500 mb-3">
+            <span class="inline-block w-3 h-3 rounded-full bg-teal-400/50 border border-teal-400 mr-1"></span> Projected NW &nbsp; 
+            <span class="text-rose-400">┅┅</span> Required (35×) &nbsp;
+            <span class="text-amber-400">★</span> 2035 loans forgiven
+          </p>
+          <div style="height: 220px; position: relative;">
+            <canvas id="retireChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Collapsible Details -->
+        <div class="space-y-3">
+          <!-- Assumptions Toggle -->
+          <div class="rounded-2xl border border-slate-700/50 glass overflow-hidden">
+            <button onclick="toggleRetireSection('assumptions')" class="w-full flex items-center justify-between p-4 hover:bg-slate-700/20 transition-colors">
+              <span class="text-sm font-medium text-slate-300 flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                Model Assumptions
+              </span>
+              <svg id="assumptionsChevron" class="w-5 h-5 text-slate-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div id="assumptionsContent" class="hidden border-t border-slate-700/50 p-4 bg-slate-800/30">
+              <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                <div>
+                  <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Asset Growth</p>
+                  <p class="text-slate-300">BTC: <span class="text-orange-400">10%</span>/yr</p>
+                  <p class="text-slate-300">IRAs: <span class="text-violet-400">8%</span>/yr</p>
+                  <p class="text-slate-300">Home: <span class="text-blue-400">5%</span>/yr</p>
+                  <p class="text-slate-300">Cars: <span class="text-slate-400">-10%</span>/yr (deprec)</p>
+                </div>
+                <div>
+                  <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Inflation Model</p>
+                  <p class="text-slate-300">Variable expenses: <span class="text-rose-400">6%</span>/yr</p>
+                  <p class="text-slate-300">Mortgage: <span class="text-emerald-400">Fixed</span> (3.25%)</p>
+                  <p class="text-slate-300">Salary Growth: <span class="text-cyan-400">6%</span>/yr</p>
+                </div>
+                <div>
+                  <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Expense Breakdown</p>
+                  <p class="text-slate-300">Total: $118,301/yr</p>
+                  <p class="text-slate-300">Fixed (mortgage): $38,268/yr</p>
+                  <p class="text-slate-300">Variable: $80,033/yr</p>
+                </div>
+                <div>
+                  <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Portfolio Rule</p>
+                  <p class="text-slate-300">Base: <span class="text-teal-400">30×</span> expenses</p>
+                  <p class="text-slate-300">Tax adj: <span class="text-amber-400">35×</span> (blended ~15%)</p>
+                  <p class="text-slate-300 text-xs italic">Roth + traditional mix</p>
+                </div>
+                <div>
+                  <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Key Milestones</p>
+                  <p class="text-slate-300">HELOC: <span class="text-emerald-400">Paid Sept 2026</span></p>
+                  <p class="text-slate-300">Student Loans: <span class="text-amber-400">Forgiven 2035</span></p>
+                  <p class="text-slate-300 text-xs italic">Lenora PSLF Year 20</p>
+                </div>
+                <div>
+                  <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Data Source</p>
+                  <p class="text-slate-300">Expenses: MIT Living Wage</p>
+                  <p class="text-slate-300">Location: Santa Rosa, CA</p>
+                  <p class="text-slate-300">Family: 2 adults, 2 children</p>
+                </div>
+              </div>
             </div>
-            <div>
-              <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Inflation Model</p>
-              <p class="text-slate-300">Variable expenses: <span class="text-rose-400">6%</span>/yr</p>
-              <p class="text-slate-300">Mortgage: <span class="text-emerald-400">Fixed</span> (3.25%)</p>
-              <p class="text-slate-300">Salary Growth: <span class="text-cyan-400">6%</span>/yr</p>
+          </div>
+
+          <!-- Year-by-Year Toggle -->
+          <div class="rounded-2xl border border-slate-700/50 glass overflow-hidden">
+            <button onclick="toggleRetireSection('yearByYear')" class="w-full flex items-center justify-between p-4 hover:bg-slate-700/20 transition-colors">
+              <span class="text-sm font-medium text-slate-300 flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                Year-by-Year Projection
+              </span>
+              <svg id="yearByYearChevron" class="w-5 h-5 text-slate-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div id="yearByYearContent" class="hidden border-t border-slate-700/50 p-4 bg-slate-800/30 overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-slate-500 text-xs uppercase tracking-wider">
+                    <th class="text-left py-2 pr-4">Year</th>
+                    <th class="text-right py-2 px-2">Start NW</th>
+                    <th class="text-right py-2 px-2">Savings</th>
+                    <th class="text-right py-2 px-2">Growth</th>
+                    <th class="text-right py-2 px-2">End NW</th>
+                    <th class="text-right py-2 px-2">Expenses</th>
+                    <th class="text-right py-2 px-2">Required</th>
+                    <th class="text-right py-2 pl-2">Gap</th>
+                  </tr>
+                </thead>
+                <tbody id="yearByYearTable" class="text-slate-300">
+                </tbody>
+              </table>
             </div>
-            <div>
-              <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Expense Breakdown</p>
-              <p class="text-slate-300">Total: $118,301/yr</p>
-              <p class="text-slate-300">Fixed (mortgage): $38,268/yr</p>
-              <p class="text-slate-300">Variable: $80,033/yr</p>
+          </div>
+
+          <!-- Savings Toggle -->
+          <div class="rounded-2xl border border-slate-700/50 glass overflow-hidden">
+            <button onclick="toggleRetireSection('savings')" class="w-full flex items-center justify-between p-4 hover:bg-slate-700/20 transition-colors">
+              <span class="text-sm font-medium text-slate-300 flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                Monthly Savings by Year
+              </span>
+              <svg id="savingsChevron" class="w-5 h-5 text-slate-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div id="savingsContent" class="hidden border-t border-slate-700/50 p-4 bg-slate-800/30 overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-slate-500 text-xs uppercase tracking-wider">
+                    <th class="text-left py-2 pr-4">Year</th>
+                    <th class="text-right py-2 px-2">BTC Purchases</th>
+                    <th class="text-right py-2 px-2">IRA + Match</th>
+                    <th class="text-right py-2 px-2">Monthly Total</th>
+                    <th class="text-right py-2 pl-2">Annual Total</th>
+                  </tr>
+                </thead>
+                <tbody id="savingsTable" class="text-slate-300">
+                </tbody>
+              </table>
+              <p class="text-xs text-slate-500 mt-3 italic">Note: Mortgage principal paydown (~$18K/yr) builds home equity but isn't counted as new savings</p>
             </div>
-            <div>
-              <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Portfolio Rule</p>
-              <p class="text-slate-300">Base: <span class="text-teal-400">30×</span> expenses</p>
-              <p class="text-slate-300">Tax adj: <span class="text-amber-400">35×</span> (blended ~15%)</p>
-              <p class="text-slate-300 text-xs italic">Roth + traditional mix</p>
-            </div>
-            <div>
-              <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Key Milestones</p>
-              <p class="text-slate-300">HELOC: <span class="text-emerald-400">Paid Sept 2026</span></p>
-              <p class="text-slate-300">Student Loans: <span class="text-amber-400">Forgiven 2035</span></p>
-              <p class="text-slate-300 text-xs italic">Lenora PSLF Year 20</p>
-            </div>
-            <div>
-              <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Data Source</p>
-              <p class="text-slate-300">Expenses: MIT Living Wage</p>
-              <p class="text-slate-300">Location: Santa Rosa, CA</p>
-              <p class="text-slate-300">Family: 2 adults, 2 children</p>
+          </div>
+
+          <!-- Asset Growth Toggle -->
+          <div class="rounded-2xl border border-slate-700/50 glass overflow-hidden">
+            <button onclick="toggleRetireSection('assetGrowth')" class="w-full flex items-center justify-between p-4 hover:bg-slate-700/20 transition-colors">
+              <span class="text-sm font-medium text-slate-300 flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                Asset Growth Over Time
+              </span>
+              <svg id="assetGrowthChevron" class="w-5 h-5 text-slate-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div id="assetGrowthContent" class="hidden border-t border-slate-700/50 p-4 bg-slate-800/30 overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-slate-500 text-xs uppercase tracking-wider">
+                    <th class="text-left py-2 pr-4">Year</th>
+                    <th class="text-right py-2 px-2">Home Equity</th>
+                    <th class="text-right py-2 px-2">IRAs</th>
+                    <th class="text-right py-2 px-2">Bitcoin</th>
+                    <th class="text-right py-2 px-2">Cars + Cash</th>
+                    <th class="text-right py-2 px-2">Student Loans</th>
+                    <th class="text-right py-2 pl-2">Total NW</th>
+                  </tr>
+                </thead>
+                <tbody id="assetGrowthTable" class="text-slate-300">
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Year-by-Year Toggle -->
-      <div class="rounded-2xl border border-slate-700/50 glass overflow-hidden">
-        <button onclick="toggleRetireSection('yearByYear')" class="w-full flex items-center justify-between p-4 hover:bg-slate-700/20 transition-colors">
-          <span class="text-sm font-medium text-slate-300 flex items-center gap-2">
-            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-            Year-by-Year Projection
-          </span>
-          <svg id="yearByYearChevron" class="w-5 h-5 text-slate-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-        </button>
-        <div id="yearByYearContent" class="hidden border-t border-slate-700/50 p-4 bg-slate-800/30 overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="text-slate-500 text-xs uppercase tracking-wider">
-                <th class="text-left py-2 pr-4">Year</th>
-                <th class="text-right py-2 px-2">Start NW</th>
-                <th class="text-right py-2 px-2">Savings</th>
-                <th class="text-right py-2 px-2">Appreciation</th>
-                <th class="text-right py-2 px-2">End NW</th>
-                <th class="text-right py-2 px-2">Expenses</th>
-                <th class="text-right py-2 px-2">Req'd Portfolio</th>
-                <th class="text-right py-2 pl-2">Gap</th>
-              </tr>
-            </thead>
-            <tbody id="yearByYearTable" class="text-slate-300">
-            </tbody>
-          </table>
+      <!-- Cash Flow Section -->
+      <section>
+        <h2 class="text-lg font-semibold text-white flex items-center gap-2 mb-4">
+          <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path></svg>
+          Cash Flow <span id="cfYear" class="text-slate-500 text-sm font-normal ml-2"></span>
+        </h2>
+
+        <!-- Row 1: Income -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          <!-- Gross Income -->
+          <div class="tooltip-wrapper rounded-2xl bg-gradient-to-br from-cyan-500/20 to-cyan-600/5 border border-cyan-500/30 p-5 cursor-help">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Gross Income</p>
+            <p id="grossIncome" class="text-2xl font-bold">-</p>
+            <p class="text-xs text-slate-500">monthly avg</p>
+            <div class="tooltip-content">
+              <div class="tooltip-title">Gross Income Breakdown</div>
+              <div id="grossIncomeTooltip">
+                <div class="tooltip-row">
+                  <span class="tooltip-label">Jon's Salary</span>
+                  <span id="ttJonSalary" class="tooltip-value text-cyan-400">-</span>
+                </div>
+                <div class="tooltip-row">
+                  <span class="tooltip-label">Lenora's Salary</span>
+                  <span id="ttLenoraSalary" class="tooltip-value text-cyan-400">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Take-Home -->
+          <div class="tooltip-wrapper rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 p-5 cursor-help">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Take-Home</p>
+            <p id="takeHome" class="text-2xl font-bold">-</p>
+            <p class="text-xs text-slate-500">monthly avg</p>
+            <div class="tooltip-content">
+              <div class="tooltip-title">Take-Home Breakdown</div>
+              <div id="takeHomeTooltip">
+                <div class="tooltip-row">
+                  <span class="tooltip-label">Gross Income</span>
+                  <span id="ttGrossForTakeHome" class="tooltip-value text-cyan-400">-</span>
+                </div>
+                <div class="tooltip-row">
+                  <span class="tooltip-label">Federal Tax</span>
+                  <span id="ttFedTaxTakeHome" class="tooltip-value text-rose-400">-</span>
+                </div>
+                <div class="tooltip-row">
+                  <span class="tooltip-label">State Tax</span>
+                  <span id="ttStateTaxTakeHome" class="tooltip-value text-rose-400">-</span>
+                </div>
+                <div class="tooltip-row">
+                  <span class="tooltip-label">IRA Contributions</span>
+                  <span id="ttIRATakeHome" class="tooltip-value text-violet-400">-</span>
+                </div>
+                <div class="tooltip-row" style="border-top: 1px solid rgba(100,116,139,0.4); margin-top: 4px; padding-top: 8px;">
+                  <span class="tooltip-label font-medium">Net Take-Home</span>
+                  <span id="ttNetTakeHome" class="tooltip-value text-emerald-400">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Taxes -->
+          <div class="tooltip-wrapper rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/5 border border-amber-500/30 p-5 cursor-help">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Taxes</p>
+            <p id="monthlyTax" class="text-2xl font-bold">-</p>
+            <p id="taxRate" class="text-xs text-slate-500"></p>
+            <div class="tooltip-content">
+              <div class="tooltip-title">Tax Breakdown (2024)</div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">Federal Tax</span>
+                <span id="ttFedTax" class="tooltip-value text-amber-400">-</span>
+              </div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">State Tax (CA)</span>
+                <span id="ttStateTax" class="tooltip-value text-amber-400">-</span>
+              </div>
+              <div class="tooltip-row" style="border-top: 1px solid rgba(100,116,139,0.4); margin-top: 4px; padding-top: 8px;">
+                <span class="tooltip-label font-medium">Total Monthly</span>
+                <span id="ttTotalTax" class="tooltip-value text-amber-400">-</span>
+              </div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">Effective Rate</span>
+                <span id="ttTaxRate" class="tooltip-value text-slate-300">-</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Expenses -->
+          <div class="tooltip-wrapper rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-5 cursor-help">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Expenses</p>
+            <p id="expenses" class="text-2xl font-bold">-</p>
+            <p class="text-xs text-slate-500">monthly avg</p>
+            <div class="tooltip-content">
+              <div class="tooltip-title">Top Expenses</div>
+              <div id="expensesTooltip">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2: Flow -->
+        <div class="grid grid-cols-3 gap-4 mb-5">
+          <!-- Net Inflow -->
+          <div class="tooltip-wrapper rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/5 border border-blue-500/30 p-5 cursor-help">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Net Inflow</p>
+            <p id="netInflow" class="text-2xl font-bold">-</p>
+            <p class="text-xs text-slate-500">monthly avg</p>
+            <div class="tooltip-content">
+              <div class="tooltip-title">Net Inflow Calculation</div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">Take-Home Pay</span>
+                <span id="ttTakeHomeForInflow" class="tooltip-value text-emerald-400">-</span>
+              </div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">Total Expenses</span>
+                <span id="ttExpensesForInflow" class="tooltip-value text-rose-400">-</span>
+              </div>
+              <div class="tooltip-row" style="border-top: 1px solid rgba(100,116,139,0.4); margin-top: 4px; padding-top: 8px;">
+                <span class="tooltip-label font-medium">Net Inflow</span>
+                <span id="ttNetInflow" class="tooltip-value text-blue-400">-</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Total Savings -->
+          <div class="tooltip-wrapper rounded-2xl bg-gradient-to-br from-violet-500/20 to-violet-600/5 border border-violet-500/30 p-5 cursor-help">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Total Savings</p>
+            <p id="totalSavings" class="text-2xl font-bold">-</p>
+            <p class="text-xs text-slate-500">monthly avg</p>
+            <div class="tooltip-content">
+              <div class="tooltip-title">Savings Breakdown</div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">BTC Purchases</span>
+                <span id="ttBTCSavings" class="tooltip-value text-orange-400">-</span>
+              </div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">IRA + Match</span>
+                <span id="ttIRASavings" class="tooltip-value text-violet-400">-</span>
+              </div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">Home Equity Added</span>
+                <span id="ttHomeEquity" class="tooltip-value text-blue-400">-</span>
+              </div>
+              <div class="tooltip-row" style="border-top: 1px solid rgba(100,116,139,0.4); margin-top: 4px; padding-top: 8px;">
+                <span class="tooltip-label font-medium">Total Monthly</span>
+                <span id="ttTotalSavings" class="tooltip-value text-violet-400">-</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Spending Estimate -->
+          <div class="tooltip-wrapper rounded-2xl bg-gradient-to-br from-pink-500/20 to-pink-600/5 border border-pink-500/30 p-5 cursor-help">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Free Cash</p>
+            <p id="freeCash" class="text-2xl font-bold">-</p>
+            <p class="text-xs text-slate-500">after savings</p>
+            <div class="tooltip-content">
+              <div class="tooltip-title">Free Cash Calculation</div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">Net Inflow</span>
+                <span id="ttInflowForFree" class="tooltip-value text-blue-400">-</span>
+              </div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">BTC Purchases</span>
+                <span id="ttBTCForFree" class="tooltip-value text-orange-400">-</span>
+              </div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">Utility Bills</span>
+                <span id="ttBillsForFree" class="tooltip-value text-slate-400">-</span>
+              </div>
+              <div class="tooltip-row" style="border-top: 1px solid rgba(100,116,139,0.4); margin-top: 4px; padding-top: 8px;">
+                <span class="tooltip-label font-medium">Discretionary</span>
+                <span id="ttFreeCash" class="tooltip-value text-pink-400">-</span>
+              </div>
+              <p class="text-[10px] text-slate-500 mt-2 italic">Rough estimate for non-recurring spending</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bills Chart -->
+        <div class="rounded-2xl border border-slate-700/50 glass p-4">
+          <h3 class="text-sm font-medium text-white mb-3">Monthly Bills</h3>
+          <div style="height: 200px; position: relative;">
+            <canvas id="billsChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- Status -->
+      <div class="rounded-xl border border-slate-700/50 bg-slate-800/20 p-3 flex gap-6">
+        <div class="flex items-center gap-2">
+          <div id="nwStatus" class="w-3 h-3 rounded-full bg-emerald-400"></div>
+          <span class="text-xs text-slate-400">Net Worth API</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div id="cfStatus" class="w-3 h-3 rounded-full bg-emerald-400"></div>
+          <span class="text-xs text-slate-400">Cash Flow API</span>
         </div>
       </div>
-
-      <!-- Savings Breakdown Toggle -->
-      <div class="rounded-2xl border border-slate-700/50 glass overflow-hidden">
-        <button onclick="toggleRetireSection('savings')" class="w-full flex items-center justify-between p-4 hover:bg-slate-700/20 transition-colors">
-          <span class="text-sm font-medium text-slate-300 flex items-center gap-2">
-            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-            Monthly Savings by Year
-          </span>
-          <svg id="savingsChevron" class="w-5 h-5 text-slate-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-        </button>
-        <div id="savingsContent" class="hidden border-t border-slate-700/50 p-4 bg-slate-800/30 overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="text-slate-500 text-xs uppercase tracking-wider">
-                <th class="text-left py-2 pr-4">Year</th>
-                <th class="text-right py-2 px-2">BTC Purchases</th>
-                <th class="text-right py-2 px-2">IRA + Match</th>
-                <th class="text-right py-2 px-2">Monthly Total</th>
-                <th class="text-right py-2 pl-2">Annual Total</th>
-              </tr>
-            </thead>
-            <tbody id="savingsTable" class="text-slate-300">
-            </tbody>
-          </table>
-          <p class="text-xs text-slate-500 mt-3 italic">Note: Mortgage principal paydown (~$18K/yr) builds home equity but isn't counted as new savings</p>
-        </div>
-      </div>
-
-      <!-- Asset Growth Toggle -->
-      <div class="rounded-2xl border border-slate-700/50 glass overflow-hidden">
-        <button onclick="toggleRetireSection('assetGrowth')" class="w-full flex items-center justify-between p-4 hover:bg-slate-700/20 transition-colors">
-          <span class="text-sm font-medium text-slate-300 flex items-center gap-2">
-            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-            Asset Growth Over Time
-          </span>
-          <svg id="assetGrowthChevron" class="w-5 h-5 text-slate-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-        </button>
-        <div id="assetGrowthContent" class="hidden border-t border-slate-700/50 p-4 bg-slate-800/30 overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="text-slate-500 text-xs uppercase tracking-wider">
-                <th class="text-left py-2 pr-4">Year</th>
-                <th class="text-right py-2 px-2">Home Equity</th>
-                <th class="text-right py-2 px-2">IRAs</th>
-                <th class="text-right py-2 px-2">Bitcoin</th>
-                <th class="text-right py-2 px-2">Cars + Cash</th>
-                <th class="text-right py-2 px-2">Student Loans</th>
-                <th class="text-right py-2 pl-2">Total NW</th>
-              </tr>
-            </thead>
-            <tbody id="assetGrowthTable" class="text-slate-300">
-            </tbody>
-          </table>
-        </div>
-      </div>
     </div>
-  </section>
-
-  <!-- Cash Flow Section -->
-  <section>
-    <h2 class="text-lg font-semibold text-white flex items-center gap-2 mb-4">
-      <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path></svg>
-      Cash Flow <span id="cfYear" class="text-slate-500 text-sm font-normal ml-2"></span>
-    </h2>
-
-    <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-5">
-      <div class="rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 p-5">
-        <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Take-Home</p>
-        <p id="takeHome" class="text-2xl font-bold">-</p>
-        <p class="text-xs text-slate-500">monthly avg</p>
-      </div>
-      <div class="rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-5">
-        <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Expenses</p>
-        <p id="expenses" class="text-2xl font-bold">-</p>
-        <p class="text-xs text-slate-500">monthly avg</p>
-      </div>
-      <div class="rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/5 border border-amber-500/30 p-5">
-        <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Taxes</p>
-        <p id="monthlyTax" class="text-2xl font-bold">-</p>
-        <p id="taxRate" class="text-xs text-slate-500"></p>
-      </div>
-      <div class="rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/5 border border-blue-500/30 p-5">
-        <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Net Inflow</p>
-        <p id="netInflow" class="text-2xl font-bold">-</p>
-        <p class="text-xs text-slate-500">monthly avg</p>
-      </div>
-      <div class="rounded-2xl bg-gradient-to-br from-violet-500/20 to-violet-600/5 border border-violet-500/30 p-5">
-        <p class="text-xs font-medium uppercase tracking-wider text-slate-400">IRA Contrib</p>
-        <p id="iraContrib" class="text-2xl font-bold">-</p>
-        <p class="text-xs text-slate-500">monthly avg</p>
-      </div>
-    </div>
-
-    <!-- Bills Chart -->
-    <div class="rounded-2xl border border-slate-700/50 glass p-4">
-      <h3 class="text-sm font-medium text-white mb-3">Monthly Bills</h3>
-      <div style="height: 200px; position: relative;">
-        <canvas id="billsChart"></canvas>
-      </div>
-    </div>
-  </section>
-
-  <!-- Status -->
-  <div class="rounded-xl border border-slate-700/50 bg-slate-800/20 p-3 flex gap-6">
-    <div class="flex items-center gap-2">
-      <div id="nwStatus" class="w-3 h-3 rounded-full bg-emerald-400"></div>
-      <span class="text-xs text-slate-400">Net Worth API</span>
-    </div>
-    <div class="flex items-center gap-2">
-      <div id="cfStatus" class="w-3 h-3 rounded-full bg-emerald-400"></div>
-      <span class="text-xs text-slate-400">Cash Flow API</span>
-    </div>
-  </div>
-</div>
-```
-
   </div>
 
   <script>
@@ -418,6 +622,16 @@
      *   - Tab: "Bills" - utility bills by month (USED)
      *   - Tab: "Taxes and IRA" - annual tax data (USED)
      *   - Tabs ignored: any others
+     * 
+     * ROW MAPPING FOR "Expenses and Income" (adjust these if your sheet differs):
+     *   Row 1:  Take-Home Pay (monthly avg)
+     *   Row 2:  Jon's IRA Contribution (TODO: verify row number)
+     *   Row 3:  Lenora's IRA Contribution (TODO: verify row number)
+     *   Row 4:  Total IRA Contributions (combined)
+     *   Row 5:  BTC Purchases (TODO: verify row number)
+     *   Row 6:  Mortgage Payment (TODO: verify row number)
+     *   Row 23: Total Expenses (monthly avg)
+     *   Row 24: Net Equity Inflow (monthly avg)
      */
 
     const API = {
@@ -540,12 +754,32 @@
     };
 
     /*
-     * CASH FLOW SHEET MAPPING
+     * CASH FLOW SHEET MAPPING (verified from JSON data)
      * 
      * "Expenses and Income" tab:
      *   Columns: 0=label, 1=category, 2=2026, 3=2025, 4=2024...
      *   Row 1:  Take-Home Pay (monthly avg)
+     *   Row 2:  Home Equity added (monthly)
+     *   Row 3:  Auto Equity
      *   Row 4:  IRA Contributions (monthly avg)
+     *   Row 5:  Primary Mortgage
+     *   Row 6:  Student Loans
+     *   Row 7:  Car Loan
+     *   Row 8:  HELOC
+     *   Row 9:  PG&E
+     *   Row 10: Water
+     *   Row 11: Auto Insurance
+     *   Row 12: Verizon
+     *   Row 13: Bramble Trail Farm
+     *   Row 14: Comcast Internet
+     *   Row 15: Life Insurance
+     *   Row 16: Recology (Trash)
+     *   Row 17: Audible
+     *   Row 18: Netflix
+     *   Row 19: Amazon Prime
+     *   Row 20: Spotify
+     *   Row 21: Tesla Premium
+     *   Row 22: Rent
      *   Row 23: Total Expenses (monthly avg)
      *   Row 24: Net Equity Inflow (monthly avg)
      *   Using column 3 (2025) as the most recent complete year
@@ -557,9 +791,12 @@
      * "Taxes and IRA" tab:
      *   Column 0: Year
      *   Column 1: Gross Income (Joint)
+     *   Column 2: Gross Income (Individual - Jon)
      *   Column 14 (O): Federal Tax Due
      *   Column 15 (P): State Tax Due
      *   Using 2024 as last complete tax year
+     * 
+     * BTC Purchases: Static $3,000/month (not in sheet)
      */
 
     const parseCF = raw => {
@@ -576,26 +813,67 @@
         return typeof v === 'number' ? v : parseFloat(v) || 0; 
       };
       
-      // Get taxes from Taxes and IRA sheet for 2024 (last complete year)
-      // Column 1 = Gross Income (Joint), Column 14 = Federal Tax Due, Column 15 = State Tax Due
+// Get taxes from Taxes and IRA sheet for 2024 (last complete tax year)
+      let grossIncome = 0;
+      let jonGross = 0;
+      let lenoraGross = 0;
+      let fedTax = 0;
+      let stateTax = 0;
       let monthlyTax = 0;
       let taxRate = 0;
+      
       if (taxes) {
         for (let i = 1; i < taxes.length; i++) {
           if (taxes[i][0] === 2024 || taxes[i][0] === '2024') {
-            const grossPay = taxes[i][1] || 0;
-            const fedTax = taxes[i][14] || 0;
-            const stateTax = taxes[i][15] || 0;
+            grossIncome = taxes[i][1] || 0;
+            // Row structure: [Year, Gross Joint, Gross Individual, Net Income, ...]
+            // Individual gross is in column 2, but that's Jon's individual
+            // For now, use joint and note it's combined
+            jonGross = taxes[i][2] || 0; // Individual gross (Jon's W2)
+            lenoraGross = grossIncome - jonGross; // Remainder is Lenora's
+            fedTax = taxes[i][14] || 0;
+            stateTax = taxes[i][15] || 0;
             const totalTax = fedTax + stateTax;
             monthlyTax = totalTax / 12;
-            taxRate = grossPay > 0 ? (totalTax / grossPay) * 100 : 0;
+            taxRate = grossIncome > 0 ? (totalTax / grossIncome) * 100 : 0;
             break;
           }
         }
       }
       
+      // Build expense breakdown from rows 5-22 (excluding HELOC - row 8)
+      const expenseLabels = [
+        { row: 5, label: 'Mortgage' },
+        { row: 6, label: 'Student Loans' },
+        { row: 7, label: 'Car Loan' },
+        { row: 9, label: 'PG&E' },
+        { row: 10, label: 'Water' },
+        { row: 11, label: 'Auto Insurance' },
+        { row: 12, label: 'Verizon' },
+        { row: 13, label: 'Bramble Trail' },
+        { row: 14, label: 'Internet' },
+        { row: 15, label: 'Life Insurance' },
+        { row: 16, label: 'Trash' },
+        { row: 17, label: 'Audible' },
+        { row: 18, label: 'Netflix' },
+        { row: 19, label: 'Amazon Prime' },
+        { row: 20, label: 'Spotify' },
+        { row: 21, label: 'Tesla Premium' },
+        { row: 22, label: 'Rent' }
+      ];
+      
+      const expenseItems = expenseLabels
+        .map(({ row, label }) => ({ label, value: get(row) }))
+        .filter(item => item.value > 0);
+      
+      // Sort by value descending and take top 5
+      expenseItems.sort((a, b) => b.value - a.value);
+      const topExpenses = expenseItems.slice(0, 5);
+      const othersTotal = expenseItems.slice(5).reduce((sum, item) => sum + item.value, 0);
+      
       // Parse bills - only include months where water, energy, AND trash are all non-zero
       const billsData = [];
+      let avgBills = { water: 0, energy: 0, trash: 0, internet: 0, total: 0 };
       if (bills) {
         for (let i = 1; i < bills.length; i++) {
           const row = bills[i];
@@ -610,16 +888,43 @@
             billsData.push({ month: row[0], water, energy, trash, internet });
           }
         }
+        // Calculate averages
+        if (billsData.length > 0) {
+          avgBills.water = billsData.reduce((s, b) => s + b.water, 0) / billsData.length;
+          avgBills.energy = billsData.reduce((s, b) => s + b.energy, 0) / billsData.length;
+          avgBills.trash = billsData.reduce((s, b) => s + b.trash, 0) / billsData.length;
+          avgBills.internet = billsData.reduce((s, b) => s + b.internet, 0) / billsData.length;
+          avgBills.total = avgBills.water + avgBills.energy + avgBills.trash + avgBills.internet;
+        }
       }
+      
+      // Get IRA contributions (combined total from row 4)
+      const totalIRA = get(4);
+      
+      // BTC purchases - static $3,000/month
+      const btcPurchases = 3000;
+      
+      // Home equity from mortgage principal (row 2 has actual home equity added)
+      const homeEquityAdded = get(2) || 1500;
       
       return {
         year,
+        grossIncome: grossIncome / 12, // Convert annual to monthly
+        jonGross: jonGross / 12,
+        lenoraGross: lenoraGross / 12,
         takeHome: get(1),
         expenses: get(23),
         netInflow: get(24),
-        ira: get(4),
+        totalIRA,
+        btcPurchases,
+        homeEquityAdded,
+        fedTax: fedTax / 12,
+        stateTax: stateTax / 12,
         monthlyTax,
         taxRate,
+        topExpenses,
+        othersExpense: othersTotal,
+        avgBills,
         bills: billsData.reverse()
       };
     };
@@ -763,12 +1068,83 @@
 
     const renderCF = cf => {
       document.getElementById('cfYear').textContent = `(${cf.year} avg)`;
+      
+      // Main values
+      document.getElementById('grossIncome').textContent = fmt(cf.grossIncome);
       document.getElementById('takeHome').textContent = fmt(cf.takeHome);
-      document.getElementById('expenses').textContent = fmt(cf.expenses);
       document.getElementById('monthlyTax').textContent = fmt(cf.monthlyTax);
-      document.getElementById('taxRate').textContent = `${cf.taxRate.toFixed(1)}% of gross (2024)`;
+      document.getElementById('taxRate').textContent = `${cf.taxRate.toFixed(1)}% effective`;
+      document.getElementById('expenses').textContent = fmt(cf.expenses);
       document.getElementById('netInflow').textContent = fmt(cf.netInflow);
-      document.getElementById('iraContrib').textContent = fmt(cf.ira);
+      
+      // Total Savings = BTC + IRA + Home Equity
+      const totalSavings = cf.btcPurchases + cf.totalIRA + cf.homeEquityAdded;
+      document.getElementById('totalSavings').textContent = fmt(totalSavings);
+      
+      // Free Cash = Net Inflow - BTC Purchases - Utility Bills
+      const freeCash = cf.netInflow - cf.btcPurchases - cf.avgBills.total;
+      document.getElementById('freeCash').textContent = fmt(freeCash);
+      
+      // Gross Income tooltip
+      document.getElementById('ttJonSalary').textContent = fmt(cf.jonGross);
+      document.getElementById('ttLenoraSalary').textContent = fmt(cf.lenoraGross);
+      
+      // Take-Home tooltip
+      document.getElementById('ttGrossForTakeHome').textContent = fmt(cf.grossIncome);
+      document.getElementById('ttFedTaxTakeHome').textContent = '-' + fmt(cf.fedTax);
+      document.getElementById('ttStateTaxTakeHome').textContent = '-' + fmt(cf.stateTax);
+      document.getElementById('ttIRATakeHome').textContent = '-' + fmt(cf.totalIRA);
+      document.getElementById('ttNetTakeHome').textContent = fmt(cf.takeHome);
+      
+      // Tax tooltip
+      document.getElementById('ttFedTax').textContent = fmt(cf.fedTax);
+      document.getElementById('ttStateTax').textContent = fmt(cf.stateTax);
+      document.getElementById('ttTotalTax').textContent = fmt(cf.monthlyTax);
+      document.getElementById('ttTaxRate').textContent = `${cf.taxRate.toFixed(1)}%`;
+      
+      // Expenses tooltip - top 5 + others
+      const expTooltip = document.getElementById('expensesTooltip');
+      let expHTML = '';
+      cf.topExpenses.forEach(item => {
+        expHTML += `
+          <div class="tooltip-row">
+            <span class="tooltip-label">${item.label}</span>
+            <span class="tooltip-value text-rose-400">${fmt(item.value)}</span>
+          </div>
+        `;
+      });
+      if (cf.othersExpense > 0) {
+        expHTML += `
+          <div class="tooltip-row">
+            <span class="tooltip-label">Others</span>
+            <span class="tooltip-value text-slate-400">${fmt(cf.othersExpense)}</span>
+          </div>
+        `;
+      }
+      expHTML += `
+        <div class="tooltip-row" style="border-top: 1px solid rgba(100,116,139,0.4); margin-top: 4px; padding-top: 8px;">
+          <span class="tooltip-label font-medium">Total</span>
+          <span class="tooltip-value text-rose-400">${fmt(cf.expenses)}</span>
+        </div>
+      `;
+      expTooltip.innerHTML = expHTML;
+      
+      // Net Inflow tooltip
+      document.getElementById('ttTakeHomeForInflow').textContent = '+' + fmt(cf.takeHome);
+      document.getElementById('ttExpensesForInflow').textContent = '-' + fmt(cf.expenses);
+      document.getElementById('ttNetInflow').textContent = fmt(cf.netInflow);
+      
+      // Savings tooltip
+      document.getElementById('ttBTCSavings').textContent = fmt(cf.btcPurchases);
+      document.getElementById('ttIRASavings').textContent = fmt(cf.totalIRA);
+      document.getElementById('ttHomeEquity').textContent = fmt(cf.homeEquityAdded);
+      document.getElementById('ttTotalSavings').textContent = fmt(totalSavings);
+      
+      // Free Cash tooltip
+      document.getElementById('ttInflowForFree').textContent = '+' + fmt(cf.netInflow);
+      document.getElementById('ttBTCForFree').textContent = '-' + fmt(cf.btcPurchases);
+      document.getElementById('ttBillsForFree').textContent = '-' + fmt(cf.avgBills.total);
+      document.getElementById('ttFreeCash').textContent = fmt(freeCash);
 
       // Bills line chart
       const ctx = document.getElementById('billsChart').getContext('2d');
@@ -1205,6 +1581,5 @@
 
     loadData();
   </script>
-
 </body>
 </html>
