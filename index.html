@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personal Finance Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { background: #0f172a; }
+    .glass { background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(8px); }
+  </style>
+</head>
+<body class="min-h-screen text-white">
+  <div class="fixed inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-emerald-900/20 via-transparent to-transparent"></div>
+  </div>
+
+  <div id="app" class="relative max-w-6xl mx-auto px-4 py-6">
+    <header class="flex items-center justify-between mb-6 flex-wrap gap-4">
+      <div>
+        <h1 class="text-2xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Personal Finance Hub</h1>
+        <p id="lastDate" class="text-slate-500 text-sm"></p>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="fetchTime" class="text-xs text-slate-500"></span>
+        <button onclick="loadData()" id="refreshBtn" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700">
+          <svg id="refreshIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+          <span class="text-sm">Refresh</span>
+        </button>
+      </div>
+    </header>
+
+    <div id="loading" class="flex justify-center py-16">
+      <div class="w-10 h-10 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin"></div>
+    </div>
+
+    <div id="error" class="hidden rounded-2xl border border-rose-500/30 bg-rose-500/10 p-6 text-center">
+      <svg class="w-8 h-8 text-rose-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+      <p class="text-rose-300 mb-2">Failed to fetch data</p>
+      <p id="errorMsg" class="text-xs text-rose-400/70 mb-4"></p>
+      <button onclick="loadData()" class="px-4 py-2 rounded-lg bg-rose-500/20 border border-rose-500/40 text-rose-300 hover:bg-rose-500/30 text-sm">Retry</button>
+    </div>
+
+    <div id="content" class="hidden space-y-8">
+      <!-- Net Worth Section -->
+      <section>
+        <h2 class="text-lg font-semibold text-white flex items-center gap-2 mb-4">
+          <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+          Net Worth Overview
+        </h2>
+        
+        <!-- Top row: main stats with YTD trends -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+          <div class="rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 p-5">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Net Worth</p>
+            <p id="netWorth" class="text-2xl font-bold">-</p>
+            <p id="netWorthBTC" class="text-xs text-slate-400"></p>
+            <p id="netWorthTrend" class="mt-2 text-xs font-medium"></p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/5 border border-blue-500/30 p-5">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Total Assets</p>
+            <p id="totalAssets" class="text-2xl font-bold">-</p>
+            <p id="assetsTrend" class="mt-2 text-xs font-medium"></p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-5">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Total Liabilities</p>
+            <p id="totalLiab" class="text-2xl font-bold">-</p>
+            <p id="liabTrend" class="mt-2 text-xs font-medium"></p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-orange-500/20 to-orange-600/5 border border-orange-500/30 p-5">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">BTC Stack</p>
+            <p id="btcStack" class="text-2xl font-bold">-</p>
+            <p id="btcPrice" class="text-xs text-slate-400"></p>
+            <p id="btcTrend" class="mt-2 text-xs font-medium"></p>
+          </div>
+        </div>
+
+        <!-- Jon & Lenora boxes - moved above chart -->
+        <div class="grid grid-cols-2 gap-4 mb-5">
+          <div class="rounded-2xl border border-blue-500/30 bg-blue-500/10 p-4">
+            <p class="text-sm text-blue-300">Jon</p>
+            <p id="jonNW" class="text-xl font-bold">-</p>
+          </div>
+          <div class="rounded-2xl border border-violet-500/30 bg-violet-500/10 p-4">
+            <p class="text-sm text-violet-300">Lenora</p>
+            <p id="lenoraNW" class="text-xl font-bold">-</p>
+          </div>
+        </div>
+
+        <!-- Net Worth History Chart: Blue=USD, Orange=BTC -->
+        <div class="rounded-2xl border border-slate-700/50 glass p-4 mb-5">
+          <h3 class="text-sm font-medium text-white mb-1">Net Worth History</h3>
+          <p class="text-xs text-slate-500 mb-3"><span class="text-blue-400">■</span> USD &nbsp; <span class="text-orange-400">■</span> BTC</p>
+          <div style="height: 200px; position: relative;">
+            <canvas id="nwChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Asset breakdown -->
+        <div class="grid grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
+          <div class="rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/5 border border-blue-500/30 p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Home</p>
+            <p id="homeVal" class="text-lg font-bold">-</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-violet-500/20 to-violet-600/5 border border-violet-500/30 p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">IRA</p>
+            <p id="iraVal" class="text-lg font-bold">-</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-orange-500/20 to-orange-600/5 border border-orange-500/30 p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Bitcoin</p>
+            <p id="btcVal" class="text-lg font-bold">-</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Cash</p>
+            <p id="cashVal" class="text-lg font-bold">-</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-cyan-500/20 to-cyan-600/5 border border-cyan-500/30 p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Cars</p>
+            <p id="carsVal" class="text-lg font-bold">-</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/5 border border-amber-500/30 p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Home Equity</p>
+            <p id="homeEqVal" class="text-lg font-bold">-</p>
+          </div>
+        </div>
+
+        <!-- Liabilities breakdown -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Mortgage</p>
+            <p id="mortgageVal" class="text-lg font-bold">-</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">HELOC</p>
+            <p id="helocVal" class="text-lg font-bold">-</p>
+          </div>
+          <div id="studentCard" class="rounded-2xl p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Student Loans</p>
+            <p id="studentVal" class="text-lg font-bold">-</p>
+          </div>
+          <div id="carLoanCard" class="rounded-2xl p-3">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Car Loan</p>
+            <p id="carLoanVal" class="text-lg font-bold">-</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Retirement Progress Section -->
+      <section>
+        <h2 class="text-lg font-semibold text-white flex items-center gap-2 mb-4">
+          <svg class="w-5 h-5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+          Retirement Progress
+        </h2>
+
+        <!-- Main Stats -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+          <div class="rounded-2xl bg-gradient-to-br from-teal-500/20 to-teal-600/5 border border-teal-500/30 p-5">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Current Net Worth</p>
+            <p id="retireCurrentNW" class="text-2xl font-bold">-</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-cyan-500/20 to-cyan-600/5 border border-cyan-500/30 p-5">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Target Net Worth</p>
+            <p id="retireTarget" class="text-2xl font-bold">-</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/5 border border-amber-500/30 p-5">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Years to Target</p>
+            <p id="retireYears" class="text-2xl font-bold">-</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 p-5">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Target Year</p>
+            <p id="retireTargetYear" class="text-2xl font-bold">-</p>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="rounded-2xl border border-slate-700/50 glass p-5 mb-5">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-sm text-slate-300">Progress to Retirement</span>
+            <span id="retirePercent" class="text-sm font-bold text-teal-400">-</span>
+          </div>
+          <div class="h-4 bg-slate-700/50 rounded-full overflow-hidden">
+            <div id="retireProgressBar" class="h-full bg-gradient-to-r from-teal-500 to-emerald-400 rounded-full transition-all duration-1000" style="width: 0%"></div>
+          </div>
+          <div class="flex justify-between mt-2 text-xs text-slate-500">
+            <span>$0</span>
+            <span id="retireTargetLabel">-</span>
+          </div>
+        </div>
+
+        <!-- Projection Chart -->
+        <div class="rounded-2xl border border-slate-700/50 glass p-4 mb-5">
+          <h3 class="text-sm font-medium text-white mb-1">Net Worth Projection</h3>
+          <p class="text-xs text-slate-500 mb-3"><span class="text-teal-400">■</span> Projected NW &nbsp; <span class="text-rose-400">━</span> Required Portfolio</p>
+          <div style="height: 220px; position: relative;">
+            <canvas id="retireChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Collapsible Details -->
+        <div class="space-y-3">
+          <!-- Assumptions Toggle -->
+          <div class="rounded-2xl border border-slate-700/50 glass overflow-hidden">
+            <button onclick="toggleRetireSection('assumptions')" class="w-full flex items-center justify-between p-4 hover:bg-slate-700/20 transition-colors">
+              <span class="text-sm font-medium text-slate-300 flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                Model Assumptions
+              </span>
+              <svg id="assumptionsChevron" class="w-5 h-5 text-slate-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div id="assumptionsContent" class="hidden border-t border-slate-700/50 p-4 bg-slate-800/30">
+              <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                <div>
+                  <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Asset Growth</p>
+                  <p class="text-slate-300">BTC: <span class="text-orange-400">10%</span>/yr</p>
+                  <p class="text-slate-300">IRAs: <span class="text-violet-400">8%</span>/yr</p>
+                  <p class="text-slate-300">Home: <span class="text-blue-400">5%</span>/yr</p>
+                </div>
+                <div>
+                  <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Inflation Model</p>
+                  <p class="text-slate-300">Variable expenses: <span class="text-rose-400">6%</span>/yr</p>
+                  <p class="text-slate-300">Mortgage: <span class="text-emerald-400">Fixed</span> (3.25%)</p>
+                  <p class="text-slate-300">Salary Growth: <span class="text-cyan-400">6%</span>/yr</p>
+                </div>
+                <div>
+                  <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Expense Breakdown</p>
+                  <p class="text-slate-300">Total: $118,301/yr</p>
+                  <p class="text-slate-300">Fixed (mortgage): $38,268/yr</p>
+                  <p class="text-slate-300">Variable: $80,033/yr</p>
+                </div>
+                <div>
+                  <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Monthly Savings (Yr 1)</p>
+                  <p class="text-slate-300">BTC: $3,000</p>
+                  <p class="text-slate-300">IRA + Match: $3,578</p>
+                  <p class="text-slate-300">Mortgage Principal: $1,501</p>
+                </div>
+                <div>
+                  <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Retirement Model</p>
+                  <p class="text-slate-300">Source: MIT Living Wage</p>
+                  <p class="text-slate-300">Location: Santa Rosa, CA</p>
+                  <p class="text-slate-300">Portfolio Rule: 30× expenses</p>
+                </div>
+                <div>
+                  <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Starting Position</p>
+                  <p class="text-slate-300">Net Worth: $2.07M</p>
+                  <p class="text-slate-300">As of: Jan 2026</p>
+                  <p class="text-slate-300">HELOC: Paid Sept 2026</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Year-by-Year Toggle -->
+          <div class="rounded-2xl border border-slate-700/50 glass overflow-hidden">
+            <button onclick="toggleRetireSection('yearByYear')" class="w-full flex items-center justify-between p-4 hover:bg-slate-700/20 transition-colors">
+              <span class="text-sm font-medium text-slate-300 flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                Year-by-Year Projection
+              </span>
+              <svg id="yearByYearChevron" class="w-5 h-5 text-slate-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div id="yearByYearContent" class="hidden border-t border-slate-700/50 p-4 bg-slate-800/30 overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-slate-500 text-xs uppercase tracking-wider">
+                    <th class="text-left py-2 pr-4">Year</th>
+                    <th class="text-right py-2 px-2">Start NW</th>
+                    <th class="text-right py-2 px-2">Savings</th>
+                    <th class="text-right py-2 px-2">Appreciation</th>
+                    <th class="text-right py-2 px-2">End NW</th>
+                    <th class="text-right py-2 px-2">Expenses</th>
+                    <th class="text-right py-2 px-2">Req'd Portfolio</th>
+                    <th class="text-right py-2 pl-2">Gap</th>
+                  </tr>
+                </thead>
+                <tbody id="yearByYearTable" class="text-slate-300">
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Savings Breakdown Toggle -->
+          <div class="rounded-2xl border border-slate-700/50 glass overflow-hidden">
+            <button onclick="toggleRetireSection('savings')" class="w-full flex items-center justify-between p-4 hover:bg-slate-700/20 transition-colors">
+              <span class="text-sm font-medium text-slate-300 flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                Monthly Savings by Year
+              </span>
+              <svg id="savingsChevron" class="w-5 h-5 text-slate-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div id="savingsContent" class="hidden border-t border-slate-700/50 p-4 bg-slate-800/30 overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-slate-500 text-xs uppercase tracking-wider">
+                    <th class="text-left py-2 pr-4">Year</th>
+                    <th class="text-right py-2 px-2">BTC Purchases</th>
+                    <th class="text-right py-2 px-2">IRA + Match</th>
+                    <th class="text-right py-2 px-2">Mortgage Principal</th>
+                    <th class="text-right py-2 px-2">Monthly Total</th>
+                    <th class="text-right py-2 pl-2">Annual Total</th>
+                  </tr>
+                </thead>
+                <tbody id="savingsTable" class="text-slate-300">
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Asset Growth Toggle -->
+          <div class="rounded-2xl border border-slate-700/50 glass overflow-hidden">
+            <button onclick="toggleRetireSection('assetGrowth')" class="w-full flex items-center justify-between p-4 hover:bg-slate-700/20 transition-colors">
+              <span class="text-sm font-medium text-slate-300 flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                Asset Growth Over Time
+              </span>
+              <svg id="assetGrowthChevron" class="w-5 h-5 text-slate-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div id="assetGrowthContent" class="hidden border-t border-slate-700/50 p-4 bg-slate-800/30 overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-slate-500 text-xs uppercase tracking-wider">
+                    <th class="text-left py-2 pr-4">Year</th>
+                    <th class="text-right py-2 px-2">Home Equity</th>
+                    <th class="text-right py-2 px-2">IRAs</th>
+                    <th class="text-right py-2 px-2">Bitcoin</th>
+                    <th class="text-right py-2 px-2">Other (net)</th>
+                    <th class="text-right py-2 pl-2">Total NW</th>
+                  </tr>
+                </thead>
+                <tbody id="assetGrowthTable" class="text-slate-300">
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Cash Flow Section -->
+      <section>
+        <h2 class="text-lg font-semibold text-white flex items-center gap-2 mb-4">
+          <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path></svg>
+          Cash Flow <span id="cfYear" class="text-slate-500 text-sm font-normal ml-2"></span>
+        </h2>
+
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-5">
+          <div class="rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 p-5">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Take-Home</p>
+            <p id="takeHome" class="text-2xl font-bold">-</p>
+            <p class="text-xs text-slate-500">monthly avg</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-5">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Expenses</p>
+            <p id="expenses" class="text-2xl font-bold">-</p>
+            <p class="text-xs text-slate-500">monthly avg</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/5 border border-amber-500/30 p-5">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Taxes</p>
+            <p id="monthlyTax" class="text-2xl font-bold">-</p>
+            <p id="taxRate" class="text-xs text-slate-500"></p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/5 border border-blue-500/30 p-5">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Net Inflow</p>
+            <p id="netInflow" class="text-2xl font-bold">-</p>
+            <p class="text-xs text-slate-500">monthly avg</p>
+          </div>
+          <div class="rounded-2xl bg-gradient-to-br from-violet-500/20 to-violet-600/5 border border-violet-500/30 p-5">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">IRA Contrib</p>
+            <p id="iraContrib" class="text-2xl font-bold">-</p>
+            <p class="text-xs text-slate-500">monthly avg</p>
+          </div>
+        </div>
+
+        <!-- Bills Chart -->
+        <div class="rounded-2xl border border-slate-700/50 glass p-4">
+          <h3 class="text-sm font-medium text-white mb-3">Monthly Bills</h3>
+          <div style="height: 200px; position: relative;">
+            <canvas id="billsChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- Status -->
+      <div class="rounded-xl border border-slate-700/50 bg-slate-800/20 p-3 flex gap-6">
+        <div class="flex items-center gap-2">
+          <div id="nwStatus" class="w-3 h-3 rounded-full bg-emerald-400"></div>
+          <span class="text-xs text-slate-400">Net Worth</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div id="retireStatus" class="w-3 h-3 rounded-full bg-teal-400"></div>
+          <span class="text-xs text-slate-400">Retirement</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div id="cfStatus" class="w-3 h-3 rounded-full bg-emerald-400"></div>
+          <span class="text-xs text-slate-400">Cash Flow</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /*
+     * Personal Finance Hub Dashboard
+     * 
+     * DATA SOURCES:
+     * 
+     * Net Worth Google Sheet (via Apps Script API):
+     *   - Tab: "Net Worth USD/BTC" - main data (USED)
+     *   - Tabs ignored: "Graphs", "Purchases", "Sales", "Current BTC Holdings", "Leftover Junk"
+     * 
+     * Cash Flow Google Sheet (via Apps Script API):
+     *   - Tab: "Expenses and Income" - monthly averages by year (USED)
+     *   - Tab: "Bills" - utility bills by month (USED)
+     *   - Tab: "Taxes and IRA" - annual tax data (USED)
+     *   - Tabs ignored: any others
+     */
+
+    const API = {
+      netWorth: 'https://script.google.com/macros/s/AKfycbwNpO22WV5YDDcVNBj_tmcpulFqh1koLjiSylo4M_GLZENsfZCPujAvQWB7m-_YhyK-/exec',
+      cashFlow: 'https://script.google.com/macros/s/AKfycbz8PFG22RExCfmgzvdvU2z-qeMiTYfXNiwfQ_K_0TmvWav-n5ucP8u_l5yZU-iW9GOUSw/exec'
+    };
+
+    let nwChart = null;
+    let billsChart = null;
+
+    const fmt = (v, compact) => {
+      if (v == null || v === '' || isNaN(v)) return '$0';
+      const n = typeof v === 'string' ? parseFloat(v.replace(/[$,]/g, '')) : v;
+      if (compact && Math.abs(n) >= 1e6) return `$${(n/1e6).toFixed(2)}M`;
+      if (compact && Math.abs(n) >= 1e3) return `$${(n/1e3).toFixed(0)}K`;
+      return n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+    };
+
+    const fmtBTC = v => v ? `${parseFloat(v).toFixed(4)} BTC` : '0 BTC';
+    const fmtDate = d => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', year: '2-digit' }) : '';
+
+    /*
+     * NET WORTH SHEET ROW MAPPING (0-indexed for array access)
+     * 
+     * Combined totals (rows 2-7):
+     *   idx 1: BTC Price
+     *   idx 2: BTC Stack (combined)
+     *   idx 3: Net Worth in BTC (combined)
+     *   idx 4: Net Worth USD (combined)
+     *   idx 5: Total Assets (combined)
+     *   idx 6: Total Liabilities (combined)
+     * 
+     * Jon's section (rows 8-19):
+     *   idx 7:  Jon's Net Worth
+     *   idx 8:  Jon's Assets
+     *   idx 9:  Jon's Liabilities
+     *   idx 10: Home Value
+     *   idx 11: Jon's IRA
+     *   idx 12: Jon's BTC
+     *   idx 13: Jon's Car
+     *   idx 14: Jon's Cash
+     *   idx 15: Car Loan
+     *   idx 16: HELOC
+     *   idx 17: Jon's Student Loans
+     *   idx 18: Mortgage
+     * 
+     * Lenora's section (rows 20-26):
+     *   idx 19: Lenora's Net Worth
+     *   idx 20: Lenora's Assets
+     *   idx 21: Lenora's Liabilities
+     *   idx 22: Lenora's IRA
+     *   idx 23: Lenora's Car
+     *   idx 24: Lenora's Cash
+     *   idx 25: Lenora's Student Loans
+     */
+
+    const parseNW = raw => {
+      if (!raw?.sheets?.['Net Worth USD/BTC']) return null;
+      const rows = raw.sheets['Net Worth USD/BTC'];
+      const dates = rows[0].slice(2);
+      const last = dates.length - 1;
+      const get = (r, c = last) => { 
+        const v = rows[r]?.[c + 2]; 
+        return typeof v === 'number' ? v : parseFloat(v) || 0; 
+      };
+      
+      // Find Jan 1 of current year for YTD calculation
+      const currentYear = new Date().getFullYear();
+      let ytdIdx = 0;
+      for (let i = 0; i < dates.length; i++) {
+        const d = new Date(dates[i]);
+        if (d.getFullYear() === currentYear) {
+          ytdIdx = i;
+          break;
+        }
+      }
+      
+      // Build time series with both USD and BTC values
+      const series = dates.map((d, i) => ({ 
+        date: fmtDate(d), 
+        nwUSD: get(4, i),
+        nwBTC: get(3, i),
+        btcPrice: get(1, i)
+      })).filter(x => x.nwUSD > 0);
+      
+      // Current values
+      const btcPrice = get(1);
+      const btcStack = get(2);
+      const home = get(10);
+      const mortgage = get(18);
+      const heloc = get(16);
+      const homeEq = home - mortgage - heloc;
+      const btcVal = btcStack * btcPrice;
+      const jonCar = get(13);
+      const lenoraCar = get(23);
+      const cars = jonCar + lenoraCar;
+      const jonCash = get(14);
+      const lenoraCash = get(24);
+      const cash = jonCash + lenoraCash;
+      const jonIRA = get(11);
+      const lenoraIRA = get(22);
+      const ira = jonIRA + lenoraIRA;
+      
+      return {
+        cur: { 
+          btcPrice, btcStack, nwBTC: get(3), nwUSD: get(4), assets: get(5), liab: get(6),
+          jonNW: get(7), lenoraNW: get(19),
+          home, ira, btcVal, cash, cars, homeEq,
+          mortgage, heloc, studentLoans: get(17) + get(25), carLoan: get(15)
+        },
+        ytd: { 
+          nwUSD: get(4, ytdIdx), 
+          assets: get(5, ytdIdx), 
+          liab: get(6, ytdIdx),
+          btcStack: get(2, ytdIdx)
+        },
+        series, 
+        lastDate: fmtDate(dates[last])
+      };
+    };
+
+    /*
+     * CASH FLOW SHEET MAPPING
+     * 
+     * "Expenses and Income" tab:
+     *   Columns: 0=label, 1=category, 2=2026, 3=2025, 4=2024...
+     *   Row 1:  Take-Home Pay (monthly avg)
+     *   Row 4:  IRA Contributions (monthly avg)
+     *   Row 23: Total Expenses (monthly avg)
+     *   Row 24: Net Equity Inflow (monthly avg)
+     *   Using column 3 (2025) as the most recent complete year
+     * 
+     * "Bills" tab:
+     *   Columns: 0=Month, 1=Water, 2=Energy, 3=Trash, 4=Internet
+     *   Only shows months where water, energy, AND trash are non-zero
+     * 
+     * "Taxes and IRA" tab:
+     *   Column 0: Year
+     *   Column 1: Gross Income (Joint)
+     *   Column 14 (O): Federal Tax Due
+     *   Column 15 (P): State Tax Due
+     *   Using 2024 as last complete tax year
+     */
+
+    const parseCF = raw => {
+      if (!raw?.sheets) return null;
+      const exp = raw.sheets['Expenses and Income'];
+      const bills = raw.sheets['Bills'];
+      const taxes = raw.sheets['Taxes and IRA'];
+      
+      // Column 3 = 2025 (most recent complete year)
+      const yearCol = 3;
+      const year = exp[0]?.[yearCol] || 2025;
+      const get = (r) => { 
+        const v = exp[r]?.[yearCol]; 
+        return typeof v === 'number' ? v : parseFloat(v) || 0; 
+      };
+      
+      // Get taxes from Taxes and IRA sheet for 2024 (last complete year)
+      // Column 1 = Gross Income (Joint), Column 14 = Federal Tax Due, Column 15 = State Tax Due
+      let monthlyTax = 0;
+      let taxRate = 0;
+      if (taxes) {
+        for (let i = 1; i < taxes.length; i++) {
+          if (taxes[i][0] === 2024 || taxes[i][0] === '2024') {
+            const grossPay = taxes[i][1] || 0;
+            const fedTax = taxes[i][14] || 0;
+            const stateTax = taxes[i][15] || 0;
+            const totalTax = fedTax + stateTax;
+            monthlyTax = totalTax / 12;
+            taxRate = grossPay > 0 ? (totalTax / grossPay) * 100 : 0;
+            break;
+          }
+        }
+      }
+      
+      // Parse bills - only include months where water, energy, AND trash are all non-zero
+      const billsData = [];
+      if (bills) {
+        for (let i = 1; i < bills.length; i++) {
+          const row = bills[i];
+          if (!row[0]) continue;
+          const water = row[1] || 0;
+          const energy = row[2] || 0;
+          const trash = row[3] || 0;
+          const internet = row[4] || 0;
+          
+          // Only include if water, energy, and trash are all non-zero
+          if (water > 0 && energy > 0 && trash > 0) {
+            billsData.push({ month: row[0], water, energy, trash, internet });
+          }
+        }
+      }
+      
+      return {
+        year,
+        takeHome: get(1),
+        expenses: get(23),
+        netInflow: get(24),
+        ira: get(4),
+        monthlyTax,
+        taxRate,
+        bills: billsData.reverse()
+      };
+    };
+
+    const setYTDTrend = (el, cur, ytd) => {
+      if (!ytd || ytd === 0) return;
+      const pct = ((cur - ytd) / Math.abs(ytd)) * 100;
+      el.textContent = `${pct >= 0 ? '↑' : '↓'} ${Math.abs(pct).toFixed(1)}% YTD`;
+      el.className = `mt-2 text-xs font-medium ${pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+    };
+
+    const renderNW = nw => {
+      document.getElementById('lastDate').textContent = `Data: ${nw.lastDate}`;
+      document.getElementById('netWorth').textContent = fmt(nw.cur.nwUSD, true);
+      document.getElementById('netWorthBTC').textContent = fmtBTC(nw.cur.nwBTC);
+      document.getElementById('totalAssets').textContent = fmt(nw.cur.assets, true);
+      document.getElementById('totalLiab').textContent = fmt(nw.cur.liab, true);
+      document.getElementById('btcStack').textContent = fmtBTC(nw.cur.btcStack);
+      document.getElementById('btcPrice').textContent = `@ ${fmt(nw.cur.btcPrice)}`;
+
+      // YTD trends
+      setYTDTrend(document.getElementById('netWorthTrend'), nw.cur.nwUSD, nw.ytd.nwUSD);
+      setYTDTrend(document.getElementById('assetsTrend'), nw.cur.assets, nw.ytd.assets);
+      setYTDTrend(document.getElementById('liabTrend'), nw.cur.liab, nw.ytd.liab);
+      setYTDTrend(document.getElementById('btcTrend'), nw.cur.btcStack, nw.ytd.btcStack);
+
+      // Jon & Lenora
+      document.getElementById('jonNW').textContent = fmt(nw.cur.jonNW, true);
+      document.getElementById('lenoraNW').textContent = fmt(nw.cur.lenoraNW, true);
+
+      // Assets
+      document.getElementById('homeVal').textContent = fmt(nw.cur.home, true);
+      document.getElementById('iraVal').textContent = fmt(nw.cur.ira, true);
+      document.getElementById('btcVal').textContent = fmt(nw.cur.btcVal, true);
+      document.getElementById('cashVal').textContent = fmt(nw.cur.cash, true);
+      document.getElementById('carsVal').textContent = fmt(nw.cur.cars, true);
+      document.getElementById('homeEqVal').textContent = fmt(nw.cur.homeEq, true);
+
+      // Liabilities
+      document.getElementById('mortgageVal').textContent = fmt(nw.cur.mortgage, true);
+      document.getElementById('helocVal').textContent = fmt(nw.cur.heloc, true);
+      
+      const studentCard = document.getElementById('studentCard');
+      const studentVal = document.getElementById('studentVal');
+      if (nw.cur.studentLoans === 0) {
+        studentCard.className = 'rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 p-3';
+        studentVal.textContent = '✓ Paid';
+      } else {
+        studentCard.className = 'rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-3';
+        studentVal.textContent = fmt(nw.cur.studentLoans, true);
+      }
+
+      const carLoanCard = document.getElementById('carLoanCard');
+      const carLoanVal = document.getElementById('carLoanVal');
+      if (nw.cur.carLoan === 0) {
+        carLoanCard.className = 'rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 p-3';
+        carLoanVal.textContent = '✓ Paid';
+      } else {
+        carLoanCard.className = 'rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-3';
+        carLoanVal.textContent = fmt(nw.cur.carLoan, true);
+      }
+
+      // Net Worth Chart with dual axis (USD blue, BTC orange)
+      const ctx = document.getElementById('nwChart').getContext('2d');
+      if (nwChart) nwChart.destroy();
+      
+      let tooltipTimeout = null;
+      const canvas = document.getElementById('nwChart');
+      
+      nwChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: nw.series.map(d => d.date),
+          datasets: [
+            {
+              label: 'USD',
+              data: nw.series.map(d => d.nwUSD),
+              borderColor: '#3b82f6',
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              fill: true,
+              tension: 0.3,
+              pointRadius: 0,
+              yAxisID: 'y'
+            },
+            {
+              label: 'BTC',
+              data: nw.series.map(d => d.nwBTC),
+              borderColor: '#f97316',
+              backgroundColor: 'transparent',
+              fill: false,
+              tension: 0.3,
+              pointRadius: 0,
+              yAxisID: 'y1'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: { 
+            legend: { display: false },
+            tooltip: {
+              enabled: true,
+              callbacks: {
+                afterDraw() {
+                  clearTimeout(tooltipTimeout);
+                  tooltipTimeout = setTimeout(() => {
+                    if (nwChart) nwChart.tooltip.setActive([]);
+                  }, 5000);
+                }
+              }
+            }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 }, maxRotation: 45 } },
+            y: { 
+              type: 'linear',
+              position: 'left',
+              grid: { color: 'rgba(100,116,139,0.2)' }, 
+              ticks: { color: '#3b82f6', font: { size: 10 }, callback: v => `$${(v/1e6).toFixed(1)}M` }
+            },
+            y1: {
+              type: 'linear',
+              position: 'right',
+              grid: { display: false },
+              ticks: { color: '#f97316', font: { size: 10 }, callback: v => `${v.toFixed(0)} BTC` }
+            }
+          }
+        }
+      });
+      
+      // Close tooltip when clicking outside chart
+      document.addEventListener('click', (e) => {
+        if (!canvas.contains(e.target)) {
+          nwChart.tooltip.setActive([]);
+          clearTimeout(tooltipTimeout);
+        }
+      });
+    };
+
+    const renderCF = cf => {
+      document.getElementById('cfYear').textContent = `(${cf.year} avg)`;
+      document.getElementById('takeHome').textContent = fmt(cf.takeHome);
+      document.getElementById('expenses').textContent = fmt(cf.expenses);
+      document.getElementById('monthlyTax').textContent = fmt(cf.monthlyTax);
+      document.getElementById('taxRate').textContent = `${cf.taxRate.toFixed(1)}% of gross (2024)`;
+      document.getElementById('netInflow').textContent = fmt(cf.netInflow);
+      document.getElementById('iraContrib').textContent = fmt(cf.ira);
+
+      // Bills line chart
+      const ctx = document.getElementById('billsChart').getContext('2d');
+      if (billsChart) billsChart.destroy();
+      billsChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: cf.bills.map(b => b.month),
+          datasets: [
+            { label: 'Energy', data: cf.bills.map(b => b.energy), borderColor: '#f97316', backgroundColor: 'transparent', tension: 0.3, pointRadius: 2 },
+            { label: 'Water', data: cf.bills.map(b => b.water), borderColor: '#3b82f6', backgroundColor: 'transparent', tension: 0.3, pointRadius: 2 },
+            { label: 'Internet', data: cf.bills.map(b => b.internet), borderColor: '#8b5cf6', backgroundColor: 'transparent', tension: 0.3, pointRadius: 2 },
+            { label: 'Trash', data: cf.bills.map(b => b.trash), borderColor: '#64748b', backgroundColor: 'transparent', tension: 0.3, pointRadius: 2 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: { 
+            legend: { 
+              display: true, 
+              position: 'top',
+              labels: { color: '#94a3b8', boxWidth: 12, padding: 10, font: { size: 10 } }
+            } 
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 9 }, maxRotation: 45 } },
+            y: { grid: { color: 'rgba(100,116,139,0.2)' }, ticks: { color: '#64748b', font: { size: 10 }, callback: v => `$${v}` } }
+          }
+        }
+      });
+    };
+
+    const showLoading = show => {
+      document.getElementById('loading').classList.toggle('hidden', !show);
+      document.getElementById('refreshIcon').classList.toggle('animate-spin', show);
+    };
+
+    const showError = (msg) => {
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('content').classList.add('hidden');
+      document.getElementById('error').classList.remove('hidden');
+      document.getElementById('errorMsg').textContent = msg;
+    };
+
+    const showContent = () => {
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('error').classList.add('hidden');
+      document.getElementById('content').classList.remove('hidden');
+    };
+
+    // Retirement Projection Model
+    let retireChart = null;
+    
+    const RETIRE_CONFIG = {
+      btcRate: 0.10,
+      iraRate: 0.08,
+      homeRate: 0.05,
+      variableInflationRate: 0.06, // Only on non-mortgage expenses
+      salaryGrowthRate: 0.06,
+      portfolioMultiple: 30,
+      startYear: 2026,
+      
+      // Expenses breakdown (MIT Living Wage for Santa Rosa family of 4)
+      totalBaseExpenses: 118301,
+      fixedMortgagePayment: 38268, // $3,189/mo × 12, locked at 3.25%, doesn't inflate
+      baseVariableExpenses: 80033, // $118,301 - $38,268 = variable portion (inflates at 6%)
+      
+      // Starting values (Jan 2026)
+      startNW: 2067597,
+      startHomeValue: 1191100,
+      startIRA: 1047848,
+      startBTC: 705041,
+      startMortgage: 635702,
+      startHELOC: 28245, // Paid off in Sept 2026
+      startOther: -212000, // cars + cash - student loans (net, excluding HELOC)
+      
+      // Monthly savings (year 1)
+      baseBTCMonthly: 3000,
+      baseIRAMonthly: 3578,
+      
+      // Mortgage amortization (3.25%, 30yr, starting year 7)
+      mortgagePayment: 3189,
+      getMortgagePrincipal: function(year) {
+        // Extended amortization schedule for 20 years
+        const yearPrincipals = [1501, 1551, 1603, 1656, 1712, 1769, 1828, 1889, 1953, 2018, 2085, 2154, 2225, 2299, 2375, 2454, 2535, 2619, 2706, 2795];
+        return yearPrincipals[Math.min(year - 1, yearPrincipals.length - 1)];
+      }
+    };
+
+    const calculateRetirement = (currentNW) => {
+      const cfg = RETIRE_CONFIG;
+      const projection = [];
+      
+      // Starting position includes HELOC as liability (paid off end of Year 1)
+      let homeValue = cfg.startHomeValue;
+      let mortgageBalance = cfg.startMortgage;
+      let helocBalance = cfg.startHELOC; // Paid off during Year 1
+      let homeEquity = homeValue - mortgageBalance - helocBalance;
+      let ira = cfg.startIRA;
+      let btc = cfg.startBTC;
+      let other = cfg.startOther;
+      
+      let targetYear = null;
+      
+      // Extended to 15 years to find actual target
+      for (let year = 1; year <= 15; year++) {
+        const startNW = homeEquity + ira + btc + other;
+        
+        // Salary-adjusted monthly savings
+        const salaryMultiplier = Math.pow(1 + cfg.salaryGrowthRate, year - 1);
+        const btcMonthly = cfg.baseBTCMonthly * salaryMultiplier;
+        const iraMonthly = cfg.baseIRAMonthly * salaryMultiplier;
+        const mortgagePrincipalMonthly = cfg.getMortgagePrincipal(year);
+        
+        const annualBTCSavings = btcMonthly * 12;
+        const annualIRASavings = iraMonthly * 12;
+        const annualMortgagePrincipal = mortgagePrincipalMonthly * 12;
+        const totalAnnualSavings = annualBTCSavings + annualIRASavings + annualMortgagePrincipal;
+        
+        // Asset appreciation
+        const homeAppreciation = homeValue * cfg.homeRate;
+        const iraAppreciation = ira * cfg.iraRate;
+        const btcAppreciation = btc * cfg.btcRate;
+        
+        // Growth on new contributions (half-year average)
+        const iraGrowthOnNew = annualIRASavings * cfg.iraRate * 0.5;
+        const btcGrowthOnNew = annualBTCSavings * cfg.btcRate * 0.5;
+        
+        const totalAppreciation = homeAppreciation + iraAppreciation + btcAppreciation + iraGrowthOnNew + btcGrowthOnNew;
+        
+        // Update asset values
+        homeValue = homeValue * (1 + cfg.homeRate);
+        mortgageBalance = mortgageBalance - annualMortgagePrincipal;
+        
+        // HELOC paid off at end of Year 1 (Sept 2026)
+        // Cash is used to pay it off - this is a wash for NW
+        if (year === 1 && helocBalance > 0) {
+          other = other - helocBalance; // Cash used to pay HELOC
+          helocBalance = 0;
+        }
+        
+        homeEquity = homeValue - mortgageBalance - helocBalance;
+        ira = ira + iraAppreciation + annualIRASavings + iraGrowthOnNew;
+        btc = btc + btcAppreciation + annualBTCSavings + btcGrowthOnNew;
+        
+        const endNW = homeEquity + ira + btc + other;
+        
+        // NEW EXPENSE MODEL: Only variable expenses inflate at 6%
+        // Fixed mortgage payment stays constant
+        const variableExpenses = cfg.baseVariableExpenses * Math.pow(1 + cfg.variableInflationRate, year);
+        const totalExpenses = cfg.fixedMortgagePayment + variableExpenses;
+        const requiredPortfolio = totalExpenses * cfg.portfolioMultiple;
+        
+        const gap = endNW - requiredPortfolio;
+        
+        if (gap >= 0 && !targetYear) {
+          targetYear = cfg.startYear + year;
+        }
+        
+        projection.push({
+          year,
+          calendarYear: cfg.startYear + year,
+          startNW,
+          totalAnnualSavings,
+          totalAppreciation,
+          endNW,
+          fixedExpenses: cfg.fixedMortgagePayment,
+          variableExpenses,
+          totalExpenses,
+          requiredPortfolio,
+          gap,
+          homeEquity,
+          ira,
+          btc,
+          other,
+          btcMonthly,
+          iraMonthly,
+          mortgagePrincipalMonthly
+        });
+      }
+      
+      return { projection, targetYear };
+    };
+
+    const toggleRetireSection = (section) => {
+      const content = document.getElementById(section + 'Content');
+      const chevron = document.getElementById(section + 'Chevron');
+      content.classList.toggle('hidden');
+      chevron.classList.toggle('rotate-180');
+    };
+
+    const renderRetirement = (currentNW) => {
+      const { projection, targetYear } = calculateRetirement(currentNW);
+      const cfg = RETIRE_CONFIG;
+      
+      // Find target index (first year with positive gap)
+      const targetIdx = projection.findIndex(p => p.gap >= 0);
+      const target = targetIdx >= 0 ? projection[targetIdx] : projection[projection.length - 1];
+      
+      // Update main stats
+      document.getElementById('retireCurrentNW').textContent = fmt(cfg.startNW, true);
+      document.getElementById('retireTarget').textContent = fmt(target.requiredPortfolio, true);
+      document.getElementById('retireYears').textContent = targetIdx >= 0 ? (targetIdx + 1) : '>15';
+      document.getElementById('retireTargetYear').textContent = targetYear || '2041+';
+      
+      // Progress bar
+      const progress = Math.min((cfg.startNW / target.requiredPortfolio) * 100, 100);
+      document.getElementById('retirePercent').textContent = progress.toFixed(1) + '%';
+      document.getElementById('retireProgressBar').style.width = progress + '%';
+      document.getElementById('retireTargetLabel').textContent = fmt(target.requiredPortfolio, true);
+      
+      // Projection chart
+      const ctx = document.getElementById('retireChart').getContext('2d');
+      if (retireChart) retireChart.destroy();
+      
+      retireChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: projection.map(p => p.calendarYear),
+          datasets: [
+            {
+              label: 'Projected Net Worth',
+              data: projection.map(p => p.endNW),
+              borderColor: '#14b8a6',
+              backgroundColor: 'rgba(20, 184, 166, 0.1)',
+              fill: true,
+              tension: 0.3,
+              pointRadius: 3,
+              pointBackgroundColor: projection.map(p => p.gap >= 0 ? '#10b981' : '#14b8a6')
+            },
+            {
+              label: 'Required Portfolio',
+              data: projection.map(p => p.requiredPortfolio),
+              borderColor: '#f43f5e',
+              backgroundColor: 'transparent',
+              borderDash: [5, 5],
+              tension: 0.3,
+              pointRadius: 0
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: { 
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return context.dataset.label + ': ' + fmt(context.raw, true);
+                }
+              }
+            }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 } } },
+            y: { 
+              grid: { color: 'rgba(100,116,139,0.2)' }, 
+              ticks: { color: '#64748b', font: { size: 10 }, callback: v => `$${(v/1e6).toFixed(1)}M` }
+            }
+          }
+        }
+      });
+      
+      // Year-by-year table
+      const yearTable = document.getElementById('yearByYearTable');
+      yearTable.innerHTML = projection.map(p => `
+        <tr class="${p.gap >= 0 ? 'bg-emerald-500/10' : ''}">
+          <td class="py-2 pr-4 font-medium">${p.calendarYear}</td>
+          <td class="py-2 px-2 text-right">${fmt(p.startNW, true)}</td>
+          <td class="py-2 px-2 text-right text-emerald-400">${fmt(p.totalAnnualSavings, true)}</td>
+          <td class="py-2 px-2 text-right text-cyan-400">${fmt(p.totalAppreciation, true)}</td>
+          <td class="py-2 px-2 text-right font-medium">${fmt(p.endNW, true)}</td>
+          <td class="py-2 px-2 text-right text-slate-400">${fmt(p.totalExpenses, true)}</td>
+          <td class="py-2 px-2 text-right text-rose-400">${fmt(p.requiredPortfolio, true)}</td>
+          <td class="py-2 pl-2 text-right ${p.gap >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${p.gap >= 0 ? '+' : ''}${fmt(p.gap, true)}</td>
+        </tr>
+      `).join('');
+      
+      // Savings table
+      const savingsTable = document.getElementById('savingsTable');
+      savingsTable.innerHTML = projection.map(p => `
+        <tr>
+          <td class="py-2 pr-4 font-medium">${p.calendarYear}</td>
+          <td class="py-2 px-2 text-right text-orange-400">$${Math.round(p.btcMonthly).toLocaleString()}</td>
+          <td class="py-2 px-2 text-right text-violet-400">$${Math.round(p.iraMonthly).toLocaleString()}</td>
+          <td class="py-2 px-2 text-right text-blue-400">$${Math.round(p.mortgagePrincipalMonthly).toLocaleString()}</td>
+          <td class="py-2 px-2 text-right">${fmt(p.btcMonthly + p.iraMonthly + p.mortgagePrincipalMonthly)}</td>
+          <td class="py-2 pl-2 text-right font-medium">${fmt(p.totalAnnualSavings, true)}</td>
+        </tr>
+      `).join('');
+      
+      // Asset growth table
+      const assetTable = document.getElementById('assetGrowthTable');
+      const startingHomeEquity = cfg.startHomeValue - cfg.startMortgage - cfg.startHELOC;
+      const startingOther = cfg.startOther; // Before HELOC payoff
+      assetTable.innerHTML = [
+        { year: cfg.startYear, homeEquity: startingHomeEquity, ira: cfg.startIRA, btc: cfg.startBTC, other: startingOther, endNW: cfg.startNW },
+        ...projection.map(p => ({ year: p.calendarYear, homeEquity: p.homeEquity, ira: p.ira, btc: p.btc, other: p.other, endNW: p.endNW }))
+      ].map(p => `
+        <tr>
+          <td class="py-2 pr-4 font-medium">${p.year}</td>
+          <td class="py-2 px-2 text-right text-blue-400">${fmt(p.homeEquity, true)}</td>
+          <td class="py-2 px-2 text-right text-violet-400">${fmt(p.ira, true)}</td>
+          <td class="py-2 px-2 text-right text-orange-400">${fmt(p.btc, true)}</td>
+          <td class="py-2 px-2 text-right text-slate-400">${fmt(p.other, true)}</td>
+          <td class="py-2 pl-2 text-right font-medium">${fmt(p.endNW, true)}</td>
+        </tr>
+      `).join('');
+    };
+
+    async function loadData() {
+      showLoading(true);
+      let nwData = null, cfData = null, nwErr = null, cfErr = null;
+
+      try {
+        const r = await fetch(API.netWorth);
+        nwData = await r.json();
+        document.getElementById('nwStatus').className = 'w-3 h-3 rounded-full bg-emerald-400';
+      } catch (e) {
+        nwErr = e.message;
+        document.getElementById('nwStatus').className = 'w-3 h-3 rounded-full bg-rose-400';
+      }
+
+      try {
+        const r = await fetch(API.cashFlow);
+        cfData = await r.json();
+        document.getElementById('cfStatus').className = 'w-3 h-3 rounded-full bg-emerald-400';
+      } catch (e) {
+        cfErr = e.message;
+        document.getElementById('cfStatus').className = 'w-3 h-3 rounded-full bg-rose-400';
+      }
+
+      showLoading(false);
+      document.getElementById('fetchTime').textContent = new Date().toLocaleTimeString();
+
+      if (!nwData && !cfData) {
+        showError(nwErr || cfErr || 'Unknown error');
+        return;
+      }
+
+      showContent();
+
+      if (nwData) {
+        const nw = parseNW(nwData);
+        if (nw) {
+          renderNW(nw);
+          renderRetirement(nw.cur.nwUSD);
+        }
+      }
+
+      if (cfData) {
+        const cf = parseCF(cfData);
+        if (cf) renderCF(cf);
+      }
+    }
+
+    loadData();
+  </script>
+</body>
+</html>
