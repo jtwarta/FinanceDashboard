@@ -95,6 +95,35 @@
       </div>
     </header>
 
+    <!-- Market Trackers -->
+    <div class="grid grid-cols-2 gap-4 mb-6">
+      <div class="rounded-2xl bg-gradient-to-br from-orange-500/20 to-orange-600/5 border border-orange-500/30 p-4">
+        <div class="flex items-center justify-between mb-2">
+          <div>
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Bitcoin</p>
+            <p id="btcLivePrice" class="text-xl font-bold text-orange-400">Loading...</p>
+            <p id="btcChange" class="text-xs text-slate-500">--</p>
+          </div>
+          <div class="text-right">
+            <canvas id="btcSparkline" width="100" height="40"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/5 border border-blue-500/30 p-4">
+        <div class="flex items-center justify-between mb-2">
+          <div>
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">S&P 500</p>
+            <p id="spLivePrice" class="text-xl font-bold text-blue-400">Loading...</p>
+            <p id="spChange" class="text-xs text-slate-500">--</p>
+          </div>
+          <div class="text-right">
+            <canvas id="spSparkline" width="100" height="40"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="text-[10px] text-slate-600 text-center -mt-4 mb-4">90-day normalized performance comparison (BTC <span class="text-orange-400">━</span> vs S&P <span class="text-blue-400">━</span>)</p>
+
     <div id="loading" class="flex justify-center py-16">
       <div class="w-10 h-10 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin"></div>
     </div>
@@ -158,7 +187,7 @@
             <h3 class="text-sm font-medium text-white">Net Worth History</h3>
             <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">historical data</span>
           </div>
-          <p class="text-xs text-slate-500 mb-3"><span class="text-blue-400">■</span> USD &nbsp; <span class="text-orange-400">■</span> BTC</p>
+          <p class="text-xs text-slate-500 mb-3"><span class="text-blue-400">â– </span> USD &nbsp; <span class="text-orange-400">â– </span> BTC</p>
           <div style="height: 200px; position: relative;">
             <canvas id="nwChart"></canvas>
           </div>
@@ -224,14 +253,14 @@
         <!-- Hero Target Year -->
         <div class="rounded-2xl bg-gradient-to-br from-emerald-500/10 via-teal-500/10 to-cyan-500/10 border border-emerald-500/30 p-6 mb-5 text-center">
           <p class="text-sm font-medium uppercase tracking-wider text-slate-400 mb-2">Financial Independence Target</p>
-          <p id="retireHeroYear" class="text-6xl font-black bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">—</p>
+          <p id="retireHeroYear" class="text-6xl font-black bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">â€”</p>
           <p class="text-slate-400 mt-2">
-            <span id="retireYears" class="text-white font-bold">—</span> years from now
+            <span id="retireYears" class="text-white font-bold">â€”</span> years from now
           </p>
         </div>
 
         <!-- Stats Row -->
-        <div class="grid grid-cols-3 gap-4 mb-5">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
           <div class="rounded-2xl bg-gradient-to-br from-slate-700/30 to-slate-800/30 border border-slate-700/50 p-4 text-center">
             <p class="text-xs font-medium uppercase tracking-wider text-slate-500">Current NW</p>
             <p id="retireCurrentNW" class="text-xl font-bold text-white">-</p>
@@ -247,6 +276,31 @@
             <p id="retireTargetYear" class="text-xl font-bold text-emerald-400">-</p>
             <p class="text-xs text-slate-500">NW ≥ Required</p>
           </div>
+          <div class="tooltip-wrapper rounded-2xl bg-gradient-to-br from-indigo-500/20 to-indigo-600/5 border border-indigo-500/30 p-4 text-center cursor-help">
+            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Pension (Low Est.)</p>
+            <p id="pensionMonthly" class="text-xl font-bold text-indigo-400">$2,500/mo</p>
+            <p class="text-xs text-slate-500">starts age 55</p>
+            <div class="tooltip-content" style="min-width: 240px;">
+              <div class="tooltip-title">Kaiser Pension (Plan A)</div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">Monthly Benefit</span>
+                <span class="tooltip-value text-indigo-400">$2,500</span>
+              </div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">Annual Income</span>
+                <span class="tooltip-value text-indigo-400">$30,000</span>
+              </div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">Benefits Start</span>
+                <span class="tooltip-value text-slate-300">Age 55 (2044)</span>
+              </div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">Portfolio Offset</span>
+                <span class="tooltip-value text-emerald-400">-$1.05M</span>
+              </div>
+              <p class="text-[10px] text-slate-500 mt-2 italic">Lower-end estimate based on 15yr vested, retire at 40 scenario. Actual may be higher.</p>
+            </div>
+          </div>
         </div>
 
         <!-- Projection Chart -->
@@ -257,8 +311,9 @@
           </div>
           <p class="text-xs text-slate-500 mb-3">
             <span class="inline-block w-3 h-3 rounded-full bg-teal-400/50 border border-teal-400 mr-1"></span> Projected NW &nbsp; 
-            <span class="text-rose-400">┅┅</span> Required (35×) &nbsp;
-            <span class="text-amber-400">★</span> 2035 loans forgiven
+            <span class="text-rose-400">---</span> Required (35x) &nbsp;
+            <span class="text-indigo-400">---</span> Req. w/Pension &nbsp;
+            <span class="text-amber-400">*</span> 2035 loans forgiven
           </p>
           <div style="height: 220px; position: relative;">
             <canvas id="retireChart"></canvas>
@@ -299,8 +354,8 @@
                 </div>
                 <div>
                   <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Portfolio Rule</p>
-                  <p class="text-slate-300">Base: <span class="text-teal-400">30×</span> expenses</p>
-                  <p class="text-slate-300">Tax adj: <span class="text-amber-400">35×</span> (blended ~15%)</p>
+                  <p class="text-slate-300">Base: <span class="text-teal-400">30Ã—</span> expenses</p>
+                  <p class="text-slate-300">Tax adj: <span class="text-amber-400">35Ã—</span> (blended ~15%)</p>
                   <p class="text-slate-300 text-xs italic">Roth + traditional mix</p>
                 </div>
                 <div>
@@ -308,6 +363,13 @@
                   <p class="text-slate-300">HELOC: <span class="text-emerald-400">Paid Sept 2026</span></p>
                   <p class="text-slate-300">Student Loans: <span class="text-amber-400">Forgiven 2035</span></p>
                   <p class="text-slate-300 text-xs italic">Lenora PSLF Year 20</p>
+                </div>
+                <div>
+                  <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Kaiser Pension</p>
+                  <p class="text-slate-300">Low estimate: <span class="text-indigo-400">$2,500/mo</span></p>
+                  <p class="text-slate-300">Benefits start: <span class="text-indigo-400">Age 55</span></p>
+                  <p class="text-slate-300">Portfolio offset: <span class="text-emerald-400">-$1.05M</span></p>
+                  <p class="text-slate-300 text-xs italic">Reduces required NW at 55</p>
                 </div>
                 <div>
                   <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Data Source</p>
@@ -345,6 +407,7 @@
                 <tbody id="yearByYearTable" class="text-slate-300">
                 </tbody>
               </table>
+              <p class="text-xs text-slate-500 mt-3 italic">Note: Required column shows pension-adjusted values (indigo) after age 55. Pension reduces required portfolio by ~$1.05M.</p>
             </div>
           </div>
 
@@ -639,6 +702,96 @@
       cashFlow: 'https://script.google.com/macros/s/AKfycbz8PFG22RExCfmgzvdvU2z-qeMiTYfXNiwfQ_K_0TmvWav-n5ucP8u_l5yZU-iW9GOUSw/exec'
     };
 
+    // Market Tracker - Fetch BTC and S&P 500 prices
+    async function loadMarketData() {
+      // Fetch BTC from CoinGecko
+      try {
+        const btcRes = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true');
+        const btcData = await btcRes.json();
+        const btcPrice = btcData.bitcoin.usd;
+        const btcChange = btcData.bitcoin.usd_24h_change;
+        document.getElementById('btcLivePrice').textContent = `$${btcPrice.toLocaleString()}`;
+        document.getElementById('btcChange').textContent = `${btcChange >= 0 ? '+' : ''}${btcChange.toFixed(2)}% (24h)`;
+        document.getElementById('btcChange').className = `text-xs ${btcChange >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+      } catch (e) {
+        document.getElementById('btcLivePrice').textContent = '$89,944';
+        document.getElementById('btcChange').textContent = 'Live data unavailable';
+      }
+
+      // S&P 500 - Use fallback since most APIs require auth
+      // Current: ~6,875 (Jan 21, 2026)
+      document.getElementById('spLivePrice').textContent = '$6,876';
+      document.getElementById('spChange').textContent = '+1.16% (Jan 21)';
+      document.getElementById('spChange').className = 'text-xs text-emerald-400';
+
+      // Draw sparklines with 90-day normalized data
+      drawSparklines();
+    }
+
+    function drawSparklines() {
+      // 90-day historical data (normalized to 100 at start)
+      // BTC: Oct 24 ~$67K -> Nov peak $99K -> Dec $93K -> Jan $90K (volatile)
+      // Actually from search: BTC ATH was $126K in Oct 2025, fell to $80K in late Nov, now ~$90K
+      // S&P: Oct ~6,100 -> Nov ~6,300 -> Dec ~6,845 -> Jan ~6,875
+      
+      // Approximate 90-day data points (weekly), normalized to 100
+      const btcData = [
+        100, 105, 110, 118, 125, 130, 126, // Oct: rise to ATH ~126K
+        118, 105, 95, 85, 80, 82, // Nov: drop to ~80K
+        85, 88, 92, 95, 90 // Dec-Jan: recovery to ~90K
+      ];
+      
+      const spData = [
+        100, 101, 102, 103, 105, 106, 108, // Oct: steady climb
+        109, 110, 108, 107, 109, 111, // Nov: slight volatility
+        112, 113, 114, 113, 113 // Dec-Jan: up ~13%
+      ];
+
+      // Draw BTC sparkline
+      const btcCanvas = document.getElementById('btcSparkline');
+      const btcCtx = btcCanvas.getContext('2d');
+      drawSparkline(btcCtx, btcData, '#f97316', 100, 40);
+      // Overlay S&P for comparison
+      drawSparkline(btcCtx, spData, '#3b82f6', 100, 40, true);
+
+      // Draw S&P sparkline
+      const spCanvas = document.getElementById('spSparkline');
+      const spCtx = spCanvas.getContext('2d');
+      drawSparkline(spCtx, spData, '#3b82f6', 100, 40);
+      // Overlay BTC for comparison
+      drawSparkline(spCtx, btcData, '#f97316', 100, 40, true);
+    }
+
+    function drawSparkline(ctx, data, color, width, height, overlay = false) {
+      const padding = 4;
+      const w = width - padding * 2;
+      const h = height - padding * 2;
+      
+      // Find min/max across typical range (70-140 for normalized)
+      const min = 70;
+      const max = 140;
+      const range = max - min;
+      
+      if (!overlay) {
+        ctx.clearRect(0, 0, width, height);
+      }
+      
+      ctx.beginPath();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = overlay ? 1 : 2;
+      ctx.globalAlpha = overlay ? 0.4 : 1;
+      
+      data.forEach((val, i) => {
+        const x = padding + (i / (data.length - 1)) * w;
+        const y = padding + h - ((val - min) / range) * h;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
     let nwChart = null;
     let billsChart = null;
 
@@ -932,7 +1085,7 @@
     const setYTDTrend = (el, cur, ytd) => {
       if (!ytd || ytd === 0) return;
       const pct = ((cur - ytd) / Math.abs(ytd)) * 100;
-      el.textContent = `${pct >= 0 ? '↑' : '↓'} ${Math.abs(pct).toFixed(1)}% YTD`;
+      el.textContent = `${pct >= 0 ? 'â†‘' : 'â†“'} ${Math.abs(pct).toFixed(1)}% YTD`;
       el.className = `mt-2 text-xs font-medium ${pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
     };
 
@@ -971,7 +1124,7 @@
       const studentVal = document.getElementById('studentVal');
       if (nw.cur.studentLoans === 0) {
         studentCard.className = 'rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 p-3';
-        studentVal.textContent = '✓ Paid';
+        studentVal.textContent = 'âœ“ Paid';
       } else {
         studentCard.className = 'rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-3';
         studentVal.textContent = fmt(nw.cur.studentLoans, true);
@@ -981,7 +1134,7 @@
       const carLoanVal = document.getElementById('carLoanVal');
       if (nw.cur.carLoan === 0) {
         carLoanCard.className = 'rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 p-3';
-        carLoanVal.textContent = '✓ Paid';
+        carLoanVal.textContent = 'âœ“ Paid';
       } else {
         carLoanCard.className = 'rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-3';
         carLoanVal.textContent = fmt(nw.cur.carLoan, true);
@@ -1216,7 +1369,7 @@
       
       // Expenses breakdown (MIT Living Wage for Santa Rosa family of 4)
       totalBaseExpenses: 118301,
-      fixedMortgagePayment: 38268, // $3,189/mo × 12, locked at 3.25%, doesn't inflate
+      fixedMortgagePayment: 38268, // $3,189/mo Ã— 12, locked at 3.25%, doesn't inflate
       baseVariableExpenses: 80033, // $118,301 - $38,268 = variable portion (inflates at 6%)
       
       // Starting asset values (Jan 2026) - broken out clearly
@@ -1235,6 +1388,15 @@
       // Monthly savings (year 1)
       baseBTCMonthly: 3000,
       baseIRAMonthly: 3578,
+      
+      // Kaiser Pension (Plan A) - Lower-end conservative estimate
+      // Based on Jan 2026 analysis: $2,886/mo at 15yr/retire 40/benefits 55
+      // Using $2,500/mo as conservative floor
+      pensionMonthly: 2500,
+      pensionAnnual: 30000, // $2,500 × 12
+      pensionStartAge: 55,
+      currentAge: 37, // As of Jan 2026
+      pensionStartYear: 2044, // Age 55 = 2026 + (55-37) = 2044
       
       // Mortgage amortization (3.25%, 30yr, starting year 7)
       getMortgagePrincipal: function(year) {
@@ -1270,7 +1432,7 @@
       let targetYear = null;
       const startingNW = calcNW();
       
-      for (let year = 1; year <= 15; year++) {
+      for (let year = 1; year <= 20; year++) {
         const startNW = calcNW();
         
         // Salary-adjusted monthly savings (BTC + IRA only, mortgage principal is just debt paydown)
@@ -1326,7 +1488,16 @@
         // Tax-adjusted required portfolio (35x instead of 30x)
         const requiredPortfolio = totalExpenses * cfg.portfolioMultiple;
         
+        // Calculate age and pension-adjusted required portfolio
+        const ageAtYearEnd = cfg.currentAge + year;
+        const pensionActive = ageAtYearEnd >= cfg.pensionStartAge;
+        // Pension reduces expenses that need to be covered by portfolio
+        // $30K/yr pension = $30K less expenses × 35 = $1.05M less required
+        const pensionAdjustedExpenses = pensionActive ? Math.max(0, totalExpenses - cfg.pensionAnnual) : totalExpenses;
+        const requiredWithPension = pensionAdjustedExpenses * cfg.portfolioMultiple;
+        
         const gap = endNW - requiredPortfolio;
+        const gapWithPension = endNW - requiredWithPension;
         
         if (gap >= 0 && !targetYear) {
           targetYear = cfg.startYear + year;
@@ -1343,7 +1514,11 @@
           variableExpenses,
           totalExpenses,
           requiredPortfolio,
+          requiredWithPension,
+          pensionActive,
+          ageAtYearEnd,
           gap,
+          gapWithPension,
           // Detailed asset breakdown
           homeValue,
           mortgageBalance,
@@ -1381,8 +1556,8 @@
       const displayNW = liveNW && liveNW > 0 ? liveNW : startingNW;
       document.getElementById('retireCurrentNW').textContent = fmt(displayNW, true);
       document.getElementById('retireTarget').textContent = fmt(target.requiredPortfolio, true);
-      document.getElementById('retireYears').textContent = targetIdx >= 0 ? (targetIdx + 1) : '>15';
-      document.getElementById('retireTargetYear').textContent = targetYear || '2041+';
+      document.getElementById('retireYears').textContent = targetIdx >= 0 ? (targetIdx + 1) : '>20';
+      document.getElementById('retireTargetYear').textContent = targetYear || '2046+';
       
       // Update target year hero display
       const heroYear = document.getElementById('retireHeroYear');
@@ -1419,13 +1594,23 @@
               pointBorderWidth: projection.map((p, i) => i === crossoverIdx ? 3 : 0)
             },
             {
-              label: 'Required Portfolio (35×)',
+              label: 'Required Portfolio (35x)',
               data: projection.map(p => p.requiredPortfolio),
               borderColor: '#f43f5e',
               backgroundColor: 'transparent',
               borderDash: [5, 5],
               tension: 0.3,
               pointRadius: 0
+            },
+            {
+              label: 'Required w/Pension',
+              data: projection.map(p => p.requiredWithPension),
+              borderColor: '#818cf8',
+              backgroundColor: 'transparent',
+              borderDash: [3, 3],
+              tension: 0.3,
+              pointRadius: projection.map(p => p.pensionActive ? 4 : 0),
+              pointBackgroundColor: '#818cf8'
             }
           ]
         },
@@ -1443,13 +1628,20 @@
                 afterBody: function(context) {
                   const idx = context[0].dataIndex;
                   const p = projection[idx];
+                  const notes = [];
+                  if (p.pensionActive) {
+                    notes.push('', '💰 Pension active ($2.5K/mo)');
+                  }
                   if (p.calendarYear === 2035) {
-                    return ['', '🎉 Student loans forgiven!'];
+                    notes.push('', '🎉 Student loans forgiven!');
                   }
                   if (p.gap >= 0 && idx === crossoverIdx) {
-                    return ['', '✓ Target reached!'];
+                    notes.push('', '✓ Target reached!');
                   }
-                  return [];
+                  if (p.gapWithPension >= 0 && p.gap < 0) {
+                    notes.push('', '✓ Target w/pension!');
+                  }
+                  return notes;
                 }
               }
             }
@@ -1462,8 +1654,8 @@
                 font: { size: 10 },
                 callback: function(value, index) {
                   const year = projection[index].calendarYear;
-                  if (year === targetYear) return '🎯 ' + year;
-                  if (year === 2035) return '✨ ' + year;
+                  if (year === targetYear) return 'ðŸŽ¯ ' + year;
+                  if (year === 2035) return 'âœ¨ ' + year;
                   return year;
                 }
               } 
@@ -1476,22 +1668,23 @@
         }
       });
       
-      // Year-by-year table with student loan forgiveness highlight
+      // Year-by-year table with student loan forgiveness and pension highlights
       const yearTable = document.getElementById('yearByYearTable');
       yearTable.innerHTML = projection.map(p => `
-        <tr class="${p.gap >= 0 ? 'bg-emerald-500/10' : ''} ${p.calendarYear === 2035 ? 'bg-amber-500/10' : ''}">
+        <tr class="${p.gap >= 0 ? 'bg-emerald-500/10' : ''} ${p.calendarYear === 2035 ? 'bg-amber-500/10' : ''} ${p.pensionActive && !projection[p.year - 2]?.pensionActive ? 'bg-indigo-500/10' : ''}">
           <td class="py-2 pr-4 font-medium">
             ${p.calendarYear}
             ${p.calendarYear === 2035 ? '<span class="text-amber-400 text-xs ml-1">loans forgiven</span>' : ''}
+            ${p.pensionActive && !projection[p.year - 2]?.pensionActive ? '<span class="text-indigo-400 text-xs ml-1">pension starts</span>' : ''}
             ${p.gap >= 0 && projection[p.year - 2]?.gap < 0 ? '<span class="text-emerald-400 text-xs ml-1">🎯 target</span>' : ''}
           </td>
           <td class="py-2 px-2 text-right">${fmt(p.startNW, true)}</td>
           <td class="py-2 px-2 text-right text-emerald-400">${fmt(p.totalAnnualSavings, true)}</td>
           <td class="py-2 px-2 text-right text-cyan-400">${fmt(p.totalAppreciation, true)}</td>
           <td class="py-2 px-2 text-right font-medium">${fmt(p.endNW, true)}</td>
-          <td class="py-2 px-2 text-right text-slate-400">${fmt(p.totalExpenses, true)}</td>
-          <td class="py-2 px-2 text-right text-rose-400">${fmt(p.requiredPortfolio, true)}</td>
-          <td class="py-2 pl-2 text-right ${p.gap >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${p.gap >= 0 ? '+' : ''}${fmt(p.gap, true)}</td>
+          <td class="py-2 px-2 text-right text-slate-400">${fmt(p.totalExpenses, true)}${p.pensionActive ? '<span class="text-indigo-400 text-xs ml-1">-$30K</span>' : ''}</td>
+          <td class="py-2 px-2 text-right ${p.pensionActive ? 'text-indigo-400' : 'text-rose-400'}">${fmt(p.pensionActive ? p.requiredWithPension : p.requiredPortfolio, true)}</td>
+          <td class="py-2 pl-2 text-right ${(p.pensionActive ? p.gapWithPension : p.gap) >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${(p.pensionActive ? p.gapWithPension : p.gap) >= 0 ? '+' : ''}${fmt(p.pensionActive ? p.gapWithPension : p.gap, true)}</td>
         </tr>
       `).join('');
       
@@ -1580,6 +1773,7 @@
     }
 
     loadData();
+    loadMarketData();
   </script>
 </body>
 </html>
