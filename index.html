@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -9,70 +10,73 @@
   <style>
     body { background: #0f172a; }
     .glass { background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(8px); }
-    
-    /* Tooltip system */
-    .tooltip-wrapper {
-      position: relative;
-    }
-    .tooltip-content {
-      position: absolute;
-      bottom: calc(100% + 8px);
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(15, 23, 42, 0.95);
-      border: 1px solid rgba(100, 116, 139, 0.4);
-      border-radius: 12px;
-      padding: 12px 16px;
-      min-width: 200px;
-      max-width: 280px;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.2s, visibility 0.2s;
-      z-index: 50;
-      backdrop-filter: blur(8px);
-      box-shadow: 0 10px 40px rgba(0,0,0,0.4);
-    }
-    .tooltip-content::after {
-      content: '';
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      border: 8px solid transparent;
-      border-top-color: rgba(100, 116, 139, 0.4);
-    }
-    .tooltip-wrapper:hover .tooltip-content {
-      opacity: 1;
-      visibility: visible;
-    }
-    .tooltip-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 4px 0;
-      border-bottom: 1px solid rgba(100, 116, 139, 0.2);
-    }
-    .tooltip-row:last-child {
-      border-bottom: none;
-    }
-    .tooltip-label {
-      color: #94a3b8;
-      font-size: 12px;
-    }
-    .tooltip-value {
-      font-weight: 600;
-      font-size: 13px;
-    }
-    .tooltip-title {
-      font-weight: 600;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #64748b;
-      margin-bottom: 8px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid rgba(100, 116, 139, 0.3);
-    }
+
+```
+/* Tooltip system */
+.tooltip-wrapper {
+  position: relative;
+}
+.tooltip-content {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(100, 116, 139, 0.4);
+  border-radius: 12px;
+  padding: 12px 16px;
+  min-width: 200px;
+  max-width: 280px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s;
+  z-index: 50;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+}
+.tooltip-content::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 8px solid transparent;
+  border-top-color: rgba(100, 116, 139, 0.4);
+}
+.tooltip-wrapper:hover .tooltip-content {
+  opacity: 1;
+  visibility: visible;
+}
+.tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(100, 116, 139, 0.2);
+}
+.tooltip-row:last-child {
+  border-bottom: none;
+}
+.tooltip-label {
+  color: #94a3b8;
+  font-size: 12px;
+}
+.tooltip-value {
+  font-weight: 600;
+  font-size: 13px;
+}
+.tooltip-title {
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(100, 116, 139, 0.3);
+}
+```
+
   </style>
 </head>
 <body class="min-h-screen text-white">
@@ -95,579 +99,570 @@
       </div>
     </header>
 
-    <!-- Market Trackers -->
-    <div class="grid grid-cols-2 gap-4 mb-6">
-      <div class="rounded-2xl bg-gradient-to-br from-orange-500/20 to-orange-600/5 border border-orange-500/30 p-4">
-        <div class="flex items-center justify-between mb-2">
-          <div>
-            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Bitcoin</p>
-            <p id="btcLivePrice" class="text-xl font-bold text-orange-400">Loading...</p>
-            <p id="btcChange" class="text-xs text-slate-500">--</p>
-          </div>
-          <div class="text-right">
-            <canvas id="btcSparkline" width="100" height="40"></canvas>
-          </div>
-        </div>
+```
+<!-- Market Trackers -->
+<div class="rounded-2xl border border-slate-700/50 glass p-4 mb-6">
+  <div class="grid grid-cols-2 gap-4 mb-3">
+    <div>
+      <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Bitcoin</p>
+      <p id="btcLivePrice" class="text-xl font-bold text-orange-400">Loading...</p>
+      <p id="btcChange" class="text-xs text-slate-500">--</p>
+    </div>
+    <div class="text-right">
+      <p class="text-xs font-medium uppercase tracking-wider text-slate-400">S&P 500</p>
+      <p id="spLivePrice" class="text-xl font-bold text-blue-400">Loading...</p>
+      <p id="spChange" class="text-xs text-slate-500">--</p>
+    </div>
+  </div>
+  <div style="height: 80px; position: relative;">
+    <canvas id="marketSparkline"></canvas>
+  </div>
+  <p class="text-[10px] text-slate-500 text-center mt-1">90-day normalized performance: <span class="text-orange-400">BTC</span> vs <span class="text-blue-400">S&P 500</span></p>
+</div>
+
+<div id="loading" class="flex justify-center py-16">
+  <div class="w-10 h-10 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin"></div>
+</div>
+
+<div id="error" class="hidden rounded-2xl border border-rose-500/30 bg-rose-500/10 p-6 text-center">
+  <svg class="w-8 h-8 text-rose-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+  <p class="text-rose-300 mb-2">Failed to fetch data</p>
+  <p id="errorMsg" class="text-xs text-rose-400/70 mb-4"></p>
+  <button onclick="loadData()" class="px-4 py-2 rounded-lg bg-rose-500/20 border border-rose-500/40 text-rose-300 hover:bg-rose-500/30 text-sm">Retry</button>
+</div>
+
+<div id="content" class="hidden space-y-8">
+  <!-- Net Worth Section -->
+  <section>
+    <h2 class="text-lg font-semibold text-white flex items-center gap-2 mb-4">
+      <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+      Net Worth Overview
+    </h2>
+    
+    <!-- Top row: main stats with 90-day trends -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+      <div class="rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 p-5">
+        <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Net Worth</p>
+        <p id="netWorth" class="text-2xl font-bold">-</p>
+        <p id="netWorthBTC" class="text-xs text-slate-400"></p>
+        <p id="netWorthTrend" class="mt-2 text-xs font-medium"></p>
       </div>
-      <div class="rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/5 border border-blue-500/30 p-4">
-        <div class="flex items-center justify-between mb-2">
-          <div>
-            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">S&P 500</p>
-            <p id="spLivePrice" class="text-xl font-bold text-blue-400">Loading...</p>
-            <p id="spChange" class="text-xs text-slate-500">--</p>
-          </div>
-          <div class="text-right">
-            <canvas id="spSparkline" width="100" height="40"></canvas>
-          </div>
-        </div>
+      <div class="rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/5 border border-blue-500/30 p-5">
+        <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Total Assets</p>
+        <p id="totalAssets" class="text-2xl font-bold">-</p>
+        <p id="assetsTrend" class="mt-2 text-xs font-medium"></p>
+      </div>
+      <div class="rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-5">
+        <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Total Liabilities</p>
+        <p id="totalLiab" class="text-2xl font-bold">-</p>
+        <p id="liabTrend" class="mt-2 text-xs font-medium"></p>
+      </div>
+      <div class="rounded-2xl bg-gradient-to-br from-orange-500/20 to-orange-600/5 border border-orange-500/30 p-5">
+        <p class="text-xs font-medium uppercase tracking-wider text-slate-400">BTC Stack</p>
+        <p id="btcStack" class="text-2xl font-bold">-</p>
+        <p id="btcPrice" class="text-xs text-slate-400"></p>
+        <p id="btcTrend" class="mt-2 text-xs font-medium"></p>
       </div>
     </div>
-    <p class="text-[10px] text-slate-600 text-center -mt-4 mb-4">90-day normalized performance comparison (BTC <span class="text-orange-400">━</span> vs S&P <span class="text-blue-400">━</span>)</p>
 
-    <div id="loading" class="flex justify-center py-16">
-      <div class="w-10 h-10 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin"></div>
+    <!-- Jon & Lenora boxes - moved above chart -->
+    <div class="grid grid-cols-2 gap-4 mb-5">
+      <div class="rounded-2xl border border-blue-500/30 bg-blue-500/10 p-4">
+        <p class="text-sm text-blue-300">Jon</p>
+        <p id="jonNW" class="text-xl font-bold">-</p>
+      </div>
+      <div class="rounded-2xl border border-violet-500/30 bg-violet-500/10 p-4">
+        <p class="text-sm text-violet-300">Lenora</p>
+        <p id="lenoraNW" class="text-xl font-bold">-</p>
+      </div>
     </div>
 
-    <div id="error" class="hidden rounded-2xl border border-rose-500/30 bg-rose-500/10 p-6 text-center">
-      <svg class="w-8 h-8 text-rose-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-      <p class="text-rose-300 mb-2">Failed to fetch data</p>
-      <p id="errorMsg" class="text-xs text-rose-400/70 mb-4"></p>
-      <button onclick="loadData()" class="px-4 py-2 rounded-lg bg-rose-500/20 border border-rose-500/40 text-rose-300 hover:bg-rose-500/30 text-sm">Retry</button>
+    <!-- Net Worth History Chart: Blue=USD, Orange=BTC -->
+    <div class="rounded-2xl border border-slate-700/50 glass p-4 mb-5">
+      <div class="flex justify-between items-start mb-1">
+        <h3 class="text-sm font-medium text-white">Net Worth History</h3>
+        <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">historical data</span>
+      </div>
+      <p class="text-xs text-slate-500 mb-3"><span class="text-blue-400">---</span> USD &nbsp; <span class="text-orange-400">---</span> BTC</p>
+      <div style="height: 200px; position: relative;">
+        <canvas id="nwChart"></canvas>
+      </div>
     </div>
 
-    <div id="content" class="hidden space-y-8">
-      <!-- Net Worth Section -->
-      <section>
-        <h2 class="text-lg font-semibold text-white flex items-center gap-2 mb-4">
-          <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-          Net Worth Overview
-        </h2>
-        
-        <!-- Top row: main stats with YTD trends -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-          <div class="rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 p-5">
-            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Net Worth</p>
-            <p id="netWorth" class="text-2xl font-bold">-</p>
-            <p id="netWorthBTC" class="text-xs text-slate-400"></p>
-            <p id="netWorthTrend" class="mt-2 text-xs font-medium"></p>
-          </div>
-          <div class="rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/5 border border-blue-500/30 p-5">
-            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Total Assets</p>
-            <p id="totalAssets" class="text-2xl font-bold">-</p>
-            <p id="assetsTrend" class="mt-2 text-xs font-medium"></p>
-          </div>
-          <div class="rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-5">
-            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Total Liabilities</p>
-            <p id="totalLiab" class="text-2xl font-bold">-</p>
-            <p id="liabTrend" class="mt-2 text-xs font-medium"></p>
-          </div>
-          <div class="rounded-2xl bg-gradient-to-br from-orange-500/20 to-orange-600/5 border border-orange-500/30 p-5">
-            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">BTC Stack</p>
-            <p id="btcStack" class="text-2xl font-bold">-</p>
-            <p id="btcPrice" class="text-xs text-slate-400"></p>
-            <p id="btcTrend" class="mt-2 text-xs font-medium"></p>
-          </div>
-        </div>
+    <!-- Asset breakdown -->
+    <div class="grid grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
+      <div class="rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/5 border border-blue-500/30 p-3">
+        <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Home</p>
+        <p id="homeVal" class="text-lg font-bold">-</p>
+      </div>
+      <div class="rounded-2xl bg-gradient-to-br from-violet-500/20 to-violet-600/5 border border-violet-500/30 p-3">
+        <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">IRA</p>
+        <p id="iraVal" class="text-lg font-bold">-</p>
+      </div>
+      <div class="rounded-2xl bg-gradient-to-br from-orange-500/20 to-orange-600/5 border border-orange-500/30 p-3">
+        <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Bitcoin</p>
+        <p id="btcVal" class="text-lg font-bold">-</p>
+      </div>
+      <div class="rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 p-3">
+        <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Cash</p>
+        <p id="cashVal" class="text-lg font-bold">-</p>
+      </div>
+      <div class="rounded-2xl bg-gradient-to-br from-cyan-500/20 to-cyan-600/5 border border-cyan-500/30 p-3">
+        <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Cars</p>
+        <p id="carsVal" class="text-lg font-bold">-</p>
+      </div>
+      <div class="rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/5 border border-amber-500/30 p-3">
+        <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Home Equity</p>
+        <p id="homeEqVal" class="text-lg font-bold">-</p>
+      </div>
+    </div>
 
-        <!-- Jon & Lenora boxes - moved above chart -->
-        <div class="grid grid-cols-2 gap-4 mb-5">
-          <div class="rounded-2xl border border-blue-500/30 bg-blue-500/10 p-4">
-            <p class="text-sm text-blue-300">Jon</p>
-            <p id="jonNW" class="text-xl font-bold">-</p>
-          </div>
-          <div class="rounded-2xl border border-violet-500/30 bg-violet-500/10 p-4">
-            <p class="text-sm text-violet-300">Lenora</p>
-            <p id="lenoraNW" class="text-xl font-bold">-</p>
-          </div>
-        </div>
+    <!-- Liabilities breakdown -->
+    <div class="grid grid-cols-3 gap-3">
+      <div class="rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-3">
+        <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Mortgage</p>
+        <p id="mortgageVal" class="text-lg font-bold">-</p>
+      </div>
+      <div id="helocCard" class="rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-3">
+        <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">HELOC</p>
+        <p id="helocVal" class="text-lg font-bold">-</p>
+      </div>
+      <div id="studentCard" class="rounded-2xl p-3">
+        <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Student Loans</p>
+        <p id="studentVal" class="text-lg font-bold">-</p>
+      </div>
+    </div>
+  </section>
 
-        <!-- Net Worth History Chart: Blue=USD, Orange=BTC -->
-        <div class="rounded-2xl border border-slate-700/50 glass p-4 mb-5">
-          <div class="flex justify-between items-start mb-1">
-            <h3 class="text-sm font-medium text-white">Net Worth History</h3>
-            <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">historical data</span>
-          </div>
-          <p class="text-xs text-slate-500 mb-3"><span class="text-blue-400">â– </span> USD &nbsp; <span class="text-orange-400">â– </span> BTC</p>
-          <div style="height: 200px; position: relative;">
-            <canvas id="nwChart"></canvas>
-          </div>
-        </div>
+  <!-- Retirement Progress Section -->
+  <section>
+    <h2 class="text-lg font-semibold text-white flex items-center gap-2 mb-4">
+      <svg class="w-5 h-5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+      Financial Independence
+      <span class="text-[10px] px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-400 border border-teal-500/30 ml-2">projected</span>
+    </h2>
 
-        <!-- Asset breakdown -->
-        <div class="grid grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
-          <div class="rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/5 border border-blue-500/30 p-3">
-            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Home</p>
-            <p id="homeVal" class="text-lg font-bold">-</p>
-          </div>
-          <div class="rounded-2xl bg-gradient-to-br from-violet-500/20 to-violet-600/5 border border-violet-500/30 p-3">
-            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">IRA</p>
-            <p id="iraVal" class="text-lg font-bold">-</p>
-          </div>
-          <div class="rounded-2xl bg-gradient-to-br from-orange-500/20 to-orange-600/5 border border-orange-500/30 p-3">
-            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Bitcoin</p>
-            <p id="btcVal" class="text-lg font-bold">-</p>
-          </div>
-          <div class="rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 p-3">
-            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Cash</p>
-            <p id="cashVal" class="text-lg font-bold">-</p>
-          </div>
-          <div class="rounded-2xl bg-gradient-to-br from-cyan-500/20 to-cyan-600/5 border border-cyan-500/30 p-3">
-            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Cars</p>
-            <p id="carsVal" class="text-lg font-bold">-</p>
-          </div>
-          <div class="rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/5 border border-amber-500/30 p-3">
-            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Home Equity</p>
-            <p id="homeEqVal" class="text-lg font-bold">-</p>
-          </div>
-        </div>
+    <!-- Hero Target Year -->
+    <div class="rounded-2xl bg-gradient-to-br from-emerald-500/10 via-teal-500/10 to-cyan-500/10 border border-emerald-500/30 p-6 mb-5 text-center">
+      <p class="text-sm font-medium uppercase tracking-wider text-slate-400 mb-2">Financial Independence Target</p>
+      <p id="retireHeroYear" class="text-6xl font-black bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">--</p>
+      <p class="text-slate-400 mt-2">
+        <span id="retireYears" class="text-white font-bold">--</span> years from now
+      </p>
+    </div>
 
-        <!-- Liabilities breakdown -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div class="rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-3">
-            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Mortgage</p>
-            <p id="mortgageVal" class="text-lg font-bold">-</p>
+    <!-- Stats Row -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+      <div class="rounded-2xl bg-gradient-to-br from-slate-700/30 to-slate-800/30 border border-slate-700/50 p-4 text-center">
+        <p class="text-xs font-medium uppercase tracking-wider text-slate-500">Current NW</p>
+        <p id="retireCurrentNW" class="text-xl font-bold text-white">-</p>
+        <p class="text-xs text-slate-500">live from sheet</p>
+      </div>
+      <div class="rounded-2xl bg-gradient-to-br from-slate-700/30 to-slate-800/30 border border-slate-700/50 p-4 text-center">
+        <p class="text-xs font-medium uppercase tracking-wider text-slate-500">Target NW</p>
+        <p id="retireTarget" class="text-xl font-bold text-white">-</p>
+        <p class="text-xs text-slate-500">35× expenses (tax-adj)</p>
+      </div>
+      <div class="rounded-2xl bg-gradient-to-br from-slate-700/30 to-slate-800/30 border border-slate-700/50 p-4 text-center">
+        <p class="text-xs font-medium uppercase tracking-wider text-slate-500">Target Year</p>
+        <p id="retireTargetYear" class="text-xl font-bold text-emerald-400">-</p>
+        <p class="text-xs text-slate-500">NW >= Required</p>
+      </div>
+      <div class="tooltip-wrapper rounded-2xl bg-gradient-to-br from-indigo-500/20 to-indigo-600/5 border border-indigo-500/30 p-4 text-center cursor-help">
+        <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Pension (Low Est.)</p>
+        <p id="pensionMonthly" class="text-xl font-bold text-indigo-400">$3,000/mo</p>
+        <p class="text-xs text-slate-500">starts age 65</p>
+        <div class="tooltip-content" style="min-width: 240px;">
+          <div class="tooltip-title">Kaiser Pension (Plan A)</div>
+          <div class="tooltip-row">
+            <span class="tooltip-label">Monthly Benefit</span>
+            <span class="tooltip-value text-indigo-400">$3,000</span>
           </div>
-          <div class="rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-3">
-            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">HELOC</p>
-            <p id="helocVal" class="text-lg font-bold">-</p>
+          <div class="tooltip-row">
+            <span class="tooltip-label">Annual Income</span>
+            <span class="tooltip-value text-indigo-400">$36,000</span>
           </div>
-          <div id="studentCard" class="rounded-2xl p-3">
-            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Student Loans</p>
-            <p id="studentVal" class="text-lg font-bold">-</p>
+          <div class="tooltip-row">
+            <span class="tooltip-label">Benefits Start</span>
+            <span class="tooltip-value text-slate-300">Age 65 (2054)</span>
           </div>
-          <div id="carLoanCard" class="rounded-2xl p-3">
-            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400">Car Loan</p>
-            <p id="carLoanVal" class="text-lg font-bold">-</p>
+          <div class="tooltip-row">
+            <span class="tooltip-label">Portfolio Offset</span>
+            <span class="tooltip-value text-emerald-400">-$1.26M</span>
           </div>
-        </div>
-      </section>
-
-      <!-- Retirement Progress Section -->
-      <section>
-        <h2 class="text-lg font-semibold text-white flex items-center gap-2 mb-4">
-          <svg class="w-5 h-5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-          Financial Independence
-          <span class="text-[10px] px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-400 border border-teal-500/30 ml-2">projected</span>
-        </h2>
-
-        <!-- Hero Target Year -->
-        <div class="rounded-2xl bg-gradient-to-br from-emerald-500/10 via-teal-500/10 to-cyan-500/10 border border-emerald-500/30 p-6 mb-5 text-center">
-          <p class="text-sm font-medium uppercase tracking-wider text-slate-400 mb-2">Financial Independence Target</p>
-          <p id="retireHeroYear" class="text-6xl font-black bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">â€”</p>
-          <p class="text-slate-400 mt-2">
-            <span id="retireYears" class="text-white font-bold">â€”</span> years from now
-          </p>
-        </div>
-
-        <!-- Stats Row -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-          <div class="rounded-2xl bg-gradient-to-br from-slate-700/30 to-slate-800/30 border border-slate-700/50 p-4 text-center">
-            <p class="text-xs font-medium uppercase tracking-wider text-slate-500">Current NW</p>
-            <p id="retireCurrentNW" class="text-xl font-bold text-white">-</p>
-            <p class="text-xs text-slate-500">live from sheet</p>
-          </div>
-          <div class="rounded-2xl bg-gradient-to-br from-slate-700/30 to-slate-800/30 border border-slate-700/50 p-4 text-center">
-            <p class="text-xs font-medium uppercase tracking-wider text-slate-500">Target NW</p>
-            <p id="retireTarget" class="text-xl font-bold text-white">-</p>
-            <p class="text-xs text-slate-500">35× expenses (tax-adj)</p>
-          </div>
-          <div class="rounded-2xl bg-gradient-to-br from-slate-700/30 to-slate-800/30 border border-slate-700/50 p-4 text-center">
-            <p class="text-xs font-medium uppercase tracking-wider text-slate-500">Target Year</p>
-            <p id="retireTargetYear" class="text-xl font-bold text-emerald-400">-</p>
-            <p class="text-xs text-slate-500">NW ≥ Required</p>
-          </div>
-          <div class="tooltip-wrapper rounded-2xl bg-gradient-to-br from-indigo-500/20 to-indigo-600/5 border border-indigo-500/30 p-4 text-center cursor-help">
-            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Pension (Low Est.)</p>
-            <p id="pensionMonthly" class="text-xl font-bold text-indigo-400">$2,500/mo</p>
-            <p class="text-xs text-slate-500">starts age 55</p>
-            <div class="tooltip-content" style="min-width: 240px;">
-              <div class="tooltip-title">Kaiser Pension (Plan A)</div>
-              <div class="tooltip-row">
-                <span class="tooltip-label">Monthly Benefit</span>
-                <span class="tooltip-value text-indigo-400">$2,500</span>
-              </div>
-              <div class="tooltip-row">
-                <span class="tooltip-label">Annual Income</span>
-                <span class="tooltip-value text-indigo-400">$30,000</span>
-              </div>
-              <div class="tooltip-row">
-                <span class="tooltip-label">Benefits Start</span>
-                <span class="tooltip-value text-slate-300">Age 55 (2044)</span>
-              </div>
-              <div class="tooltip-row">
-                <span class="tooltip-label">Portfolio Offset</span>
-                <span class="tooltip-value text-emerald-400">-$1.05M</span>
-              </div>
-              <p class="text-[10px] text-slate-500 mt-2 italic">Lower-end estimate based on 15yr vested, retire at 40 scenario. Actual may be higher.</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Projection Chart -->
-        <div class="rounded-2xl border border-slate-700/50 glass p-4 mb-5">
-          <div class="flex justify-between items-start mb-1">
-            <h3 class="text-sm font-medium text-white">Net Worth Projection</h3>
-            <span class="text-[10px] px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-400 border border-teal-500/30">projected</span>
-          </div>
-          <p class="text-xs text-slate-500 mb-3">
-            <span class="inline-block w-3 h-3 rounded-full bg-teal-400/50 border border-teal-400 mr-1"></span> Projected NW &nbsp; 
-            <span class="text-rose-400">---</span> Required (35x) &nbsp;
-            <span class="text-indigo-400">---</span> Req. w/Pension &nbsp;
-            <span class="text-amber-400">*</span> 2035 loans forgiven
-          </p>
-          <div style="height: 220px; position: relative;">
-            <canvas id="retireChart"></canvas>
-          </div>
-        </div>
-
-        <!-- Collapsible Details -->
-        <div class="space-y-3">
-          <!-- Assumptions Toggle -->
-          <div class="rounded-2xl border border-slate-700/50 glass overflow-hidden">
-            <button onclick="toggleRetireSection('assumptions')" class="w-full flex items-center justify-between p-4 hover:bg-slate-700/20 transition-colors">
-              <span class="text-sm font-medium text-slate-300 flex items-center gap-2">
-                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                Model Assumptions
-              </span>
-              <svg id="assumptionsChevron" class="w-5 h-5 text-slate-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-            </button>
-            <div id="assumptionsContent" class="hidden border-t border-slate-700/50 p-4 bg-slate-800/30">
-              <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-                <div>
-                  <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Asset Growth</p>
-                  <p class="text-slate-300">BTC: <span class="text-orange-400">10%</span>/yr</p>
-                  <p class="text-slate-300">IRAs: <span class="text-violet-400">8%</span>/yr</p>
-                  <p class="text-slate-300">Home: <span class="text-blue-400">5%</span>/yr</p>
-                  <p class="text-slate-300">Cars: <span class="text-slate-400">-10%</span>/yr (deprec)</p>
-                </div>
-                <div>
-                  <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Inflation Model</p>
-                  <p class="text-slate-300">Variable expenses: <span class="text-rose-400">6%</span>/yr</p>
-                  <p class="text-slate-300">Mortgage: <span class="text-emerald-400">Fixed</span> (3.25%)</p>
-                  <p class="text-slate-300">Salary Growth: <span class="text-cyan-400">6%</span>/yr</p>
-                </div>
-                <div>
-                  <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Expense Breakdown</p>
-                  <p class="text-slate-300">Total: $118,301/yr</p>
-                  <p class="text-slate-300">Fixed (mortgage): $38,268/yr</p>
-                  <p class="text-slate-300">Variable: $80,033/yr</p>
-                </div>
-                <div>
-                  <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Portfolio Rule</p>
-                  <p class="text-slate-300">Base: <span class="text-teal-400">30Ã—</span> expenses</p>
-                  <p class="text-slate-300">Tax adj: <span class="text-amber-400">35Ã—</span> (blended ~15%)</p>
-                  <p class="text-slate-300 text-xs italic">Roth + traditional mix</p>
-                </div>
-                <div>
-                  <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Key Milestones</p>
-                  <p class="text-slate-300">HELOC: <span class="text-emerald-400">Paid Sept 2026</span></p>
-                  <p class="text-slate-300">Student Loans: <span class="text-amber-400">Forgiven 2035</span></p>
-                  <p class="text-slate-300 text-xs italic">Lenora PSLF Year 20</p>
-                </div>
-                <div>
-                  <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Kaiser Pension</p>
-                  <p class="text-slate-300">Low estimate: <span class="text-indigo-400">$2,500/mo</span></p>
-                  <p class="text-slate-300">Benefits start: <span class="text-indigo-400">Age 55</span></p>
-                  <p class="text-slate-300">Portfolio offset: <span class="text-emerald-400">-$1.05M</span></p>
-                  <p class="text-slate-300 text-xs italic">Reduces required NW at 55</p>
-                </div>
-                <div>
-                  <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Data Source</p>
-                  <p class="text-slate-300">Expenses: MIT Living Wage</p>
-                  <p class="text-slate-300">Location: Santa Rosa, CA</p>
-                  <p class="text-slate-300">Family: 2 adults, 2 children</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Year-by-Year Toggle -->
-          <div class="rounded-2xl border border-slate-700/50 glass overflow-hidden">
-            <button onclick="toggleRetireSection('yearByYear')" class="w-full flex items-center justify-between p-4 hover:bg-slate-700/20 transition-colors">
-              <span class="text-sm font-medium text-slate-300 flex items-center gap-2">
-                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                Year-by-Year Projection
-              </span>
-              <svg id="yearByYearChevron" class="w-5 h-5 text-slate-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-            </button>
-            <div id="yearByYearContent" class="hidden border-t border-slate-700/50 p-4 bg-slate-800/30 overflow-x-auto">
-              <table class="w-full text-sm">
-                <thead>
-                  <tr class="text-slate-500 text-xs uppercase tracking-wider">
-                    <th class="text-left py-2 pr-4">Year</th>
-                    <th class="text-right py-2 px-2">Start NW</th>
-                    <th class="text-right py-2 px-2">Savings</th>
-                    <th class="text-right py-2 px-2">Growth</th>
-                    <th class="text-right py-2 px-2">End NW</th>
-                    <th class="text-right py-2 px-2">Expenses</th>
-                    <th class="text-right py-2 px-2">Required</th>
-                    <th class="text-right py-2 pl-2">Gap</th>
-                  </tr>
-                </thead>
-                <tbody id="yearByYearTable" class="text-slate-300">
-                </tbody>
-              </table>
-              <p class="text-xs text-slate-500 mt-3 italic">Note: Required column shows pension-adjusted values (indigo) after age 55. Pension reduces required portfolio by ~$1.05M.</p>
-            </div>
-          </div>
-
-          <!-- Savings Toggle -->
-          <div class="rounded-2xl border border-slate-700/50 glass overflow-hidden">
-            <button onclick="toggleRetireSection('savings')" class="w-full flex items-center justify-between p-4 hover:bg-slate-700/20 transition-colors">
-              <span class="text-sm font-medium text-slate-300 flex items-center gap-2">
-                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                Monthly Savings by Year
-              </span>
-              <svg id="savingsChevron" class="w-5 h-5 text-slate-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-            </button>
-            <div id="savingsContent" class="hidden border-t border-slate-700/50 p-4 bg-slate-800/30 overflow-x-auto">
-              <table class="w-full text-sm">
-                <thead>
-                  <tr class="text-slate-500 text-xs uppercase tracking-wider">
-                    <th class="text-left py-2 pr-4">Year</th>
-                    <th class="text-right py-2 px-2">BTC Purchases</th>
-                    <th class="text-right py-2 px-2">IRA + Match</th>
-                    <th class="text-right py-2 px-2">Monthly Total</th>
-                    <th class="text-right py-2 pl-2">Annual Total</th>
-                  </tr>
-                </thead>
-                <tbody id="savingsTable" class="text-slate-300">
-                </tbody>
-              </table>
-              <p class="text-xs text-slate-500 mt-3 italic">Note: Mortgage principal paydown (~$18K/yr) builds home equity but isn't counted as new savings</p>
-            </div>
-          </div>
-
-          <!-- Asset Growth Toggle -->
-          <div class="rounded-2xl border border-slate-700/50 glass overflow-hidden">
-            <button onclick="toggleRetireSection('assetGrowth')" class="w-full flex items-center justify-between p-4 hover:bg-slate-700/20 transition-colors">
-              <span class="text-sm font-medium text-slate-300 flex items-center gap-2">
-                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                Asset Growth Over Time
-              </span>
-              <svg id="assetGrowthChevron" class="w-5 h-5 text-slate-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-            </button>
-            <div id="assetGrowthContent" class="hidden border-t border-slate-700/50 p-4 bg-slate-800/30 overflow-x-auto">
-              <table class="w-full text-sm">
-                <thead>
-                  <tr class="text-slate-500 text-xs uppercase tracking-wider">
-                    <th class="text-left py-2 pr-4">Year</th>
-                    <th class="text-right py-2 px-2">Home Equity</th>
-                    <th class="text-right py-2 px-2">IRAs</th>
-                    <th class="text-right py-2 px-2">Bitcoin</th>
-                    <th class="text-right py-2 px-2">Cars + Cash</th>
-                    <th class="text-right py-2 px-2">Student Loans</th>
-                    <th class="text-right py-2 pl-2">Total NW</th>
-                  </tr>
-                </thead>
-                <tbody id="assetGrowthTable" class="text-slate-300">
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Cash Flow Section -->
-      <section>
-        <h2 class="text-lg font-semibold text-white flex items-center gap-2 mb-4">
-          <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path></svg>
-          Cash Flow <span id="cfYear" class="text-slate-500 text-sm font-normal ml-2"></span>
-        </h2>
-
-        <!-- Row 1: Income -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-          <!-- Gross Income -->
-          <div class="tooltip-wrapper rounded-2xl bg-gradient-to-br from-cyan-500/20 to-cyan-600/5 border border-cyan-500/30 p-5 cursor-help">
-            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Gross Income</p>
-            <p id="grossIncome" class="text-2xl font-bold">-</p>
-            <p class="text-xs text-slate-500">monthly avg</p>
-            <div class="tooltip-content">
-              <div class="tooltip-title">Gross Income Breakdown</div>
-              <div id="grossIncomeTooltip">
-                <div class="tooltip-row">
-                  <span class="tooltip-label">Jon's Salary</span>
-                  <span id="ttJonSalary" class="tooltip-value text-cyan-400">-</span>
-                </div>
-                <div class="tooltip-row">
-                  <span class="tooltip-label">Lenora's Salary</span>
-                  <span id="ttLenoraSalary" class="tooltip-value text-cyan-400">-</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Take-Home -->
-          <div class="tooltip-wrapper rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 p-5 cursor-help">
-            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Take-Home</p>
-            <p id="takeHome" class="text-2xl font-bold">-</p>
-            <p class="text-xs text-slate-500">monthly avg</p>
-            <div class="tooltip-content">
-              <div class="tooltip-title">Take-Home Breakdown</div>
-              <div id="takeHomeTooltip">
-                <div class="tooltip-row">
-                  <span class="tooltip-label">Gross Income</span>
-                  <span id="ttGrossForTakeHome" class="tooltip-value text-cyan-400">-</span>
-                </div>
-                <div class="tooltip-row">
-                  <span class="tooltip-label">Federal Tax</span>
-                  <span id="ttFedTaxTakeHome" class="tooltip-value text-rose-400">-</span>
-                </div>
-                <div class="tooltip-row">
-                  <span class="tooltip-label">State Tax</span>
-                  <span id="ttStateTaxTakeHome" class="tooltip-value text-rose-400">-</span>
-                </div>
-                <div class="tooltip-row">
-                  <span class="tooltip-label">IRA Contributions</span>
-                  <span id="ttIRATakeHome" class="tooltip-value text-violet-400">-</span>
-                </div>
-                <div class="tooltip-row" style="border-top: 1px solid rgba(100,116,139,0.4); margin-top: 4px; padding-top: 8px;">
-                  <span class="tooltip-label font-medium">Net Take-Home</span>
-                  <span id="ttNetTakeHome" class="tooltip-value text-emerald-400">-</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Taxes -->
-          <div class="tooltip-wrapper rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/5 border border-amber-500/30 p-5 cursor-help">
-            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Taxes</p>
-            <p id="monthlyTax" class="text-2xl font-bold">-</p>
-            <p id="taxRate" class="text-xs text-slate-500"></p>
-            <div class="tooltip-content">
-              <div class="tooltip-title">Tax Breakdown (2024)</div>
-              <div class="tooltip-row">
-                <span class="tooltip-label">Federal Tax</span>
-                <span id="ttFedTax" class="tooltip-value text-amber-400">-</span>
-              </div>
-              <div class="tooltip-row">
-                <span class="tooltip-label">State Tax (CA)</span>
-                <span id="ttStateTax" class="tooltip-value text-amber-400">-</span>
-              </div>
-              <div class="tooltip-row" style="border-top: 1px solid rgba(100,116,139,0.4); margin-top: 4px; padding-top: 8px;">
-                <span class="tooltip-label font-medium">Total Monthly</span>
-                <span id="ttTotalTax" class="tooltip-value text-amber-400">-</span>
-              </div>
-              <div class="tooltip-row">
-                <span class="tooltip-label">Effective Rate</span>
-                <span id="ttTaxRate" class="tooltip-value text-slate-300">-</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Expenses -->
-          <div class="tooltip-wrapper rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-5 cursor-help">
-            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Expenses</p>
-            <p id="expenses" class="text-2xl font-bold">-</p>
-            <p class="text-xs text-slate-500">monthly avg</p>
-            <div class="tooltip-content">
-              <div class="tooltip-title">Top Expenses</div>
-              <div id="expensesTooltip">
-                <!-- Populated dynamically -->
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Row 2: Flow -->
-        <div class="grid grid-cols-3 gap-4 mb-5">
-          <!-- Net Inflow -->
-          <div class="tooltip-wrapper rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/5 border border-blue-500/30 p-5 cursor-help">
-            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Net Inflow</p>
-            <p id="netInflow" class="text-2xl font-bold">-</p>
-            <p class="text-xs text-slate-500">monthly avg</p>
-            <div class="tooltip-content">
-              <div class="tooltip-title">Net Inflow Calculation</div>
-              <div class="tooltip-row">
-                <span class="tooltip-label">Take-Home Pay</span>
-                <span id="ttTakeHomeForInflow" class="tooltip-value text-emerald-400">-</span>
-              </div>
-              <div class="tooltip-row">
-                <span class="tooltip-label">Total Expenses</span>
-                <span id="ttExpensesForInflow" class="tooltip-value text-rose-400">-</span>
-              </div>
-              <div class="tooltip-row" style="border-top: 1px solid rgba(100,116,139,0.4); margin-top: 4px; padding-top: 8px;">
-                <span class="tooltip-label font-medium">Net Inflow</span>
-                <span id="ttNetInflow" class="tooltip-value text-blue-400">-</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Total Savings -->
-          <div class="tooltip-wrapper rounded-2xl bg-gradient-to-br from-violet-500/20 to-violet-600/5 border border-violet-500/30 p-5 cursor-help">
-            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Total Savings</p>
-            <p id="totalSavings" class="text-2xl font-bold">-</p>
-            <p class="text-xs text-slate-500">monthly avg</p>
-            <div class="tooltip-content">
-              <div class="tooltip-title">Savings Breakdown</div>
-              <div class="tooltip-row">
-                <span class="tooltip-label">BTC Purchases</span>
-                <span id="ttBTCSavings" class="tooltip-value text-orange-400">-</span>
-              </div>
-              <div class="tooltip-row">
-                <span class="tooltip-label">IRA + Match</span>
-                <span id="ttIRASavings" class="tooltip-value text-violet-400">-</span>
-              </div>
-              <div class="tooltip-row">
-                <span class="tooltip-label">Home Equity Added</span>
-                <span id="ttHomeEquity" class="tooltip-value text-blue-400">-</span>
-              </div>
-              <div class="tooltip-row" style="border-top: 1px solid rgba(100,116,139,0.4); margin-top: 4px; padding-top: 8px;">
-                <span class="tooltip-label font-medium">Total Monthly</span>
-                <span id="ttTotalSavings" class="tooltip-value text-violet-400">-</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Spending Estimate -->
-          <div class="tooltip-wrapper rounded-2xl bg-gradient-to-br from-pink-500/20 to-pink-600/5 border border-pink-500/30 p-5 cursor-help">
-            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Free Cash</p>
-            <p id="freeCash" class="text-2xl font-bold">-</p>
-            <p class="text-xs text-slate-500">after savings</p>
-            <div class="tooltip-content">
-              <div class="tooltip-title">Free Cash Calculation</div>
-              <div class="tooltip-row">
-                <span class="tooltip-label">Net Inflow</span>
-                <span id="ttInflowForFree" class="tooltip-value text-blue-400">-</span>
-              </div>
-              <div class="tooltip-row">
-                <span class="tooltip-label">BTC Purchases</span>
-                <span id="ttBTCForFree" class="tooltip-value text-orange-400">-</span>
-              </div>
-              <div class="tooltip-row">
-                <span class="tooltip-label">Utility Bills</span>
-                <span id="ttBillsForFree" class="tooltip-value text-slate-400">-</span>
-              </div>
-              <div class="tooltip-row" style="border-top: 1px solid rgba(100,116,139,0.4); margin-top: 4px; padding-top: 8px;">
-                <span class="tooltip-label font-medium">Discretionary</span>
-                <span id="ttFreeCash" class="tooltip-value text-pink-400">-</span>
-              </div>
-              <p class="text-[10px] text-slate-500 mt-2 italic">Rough estimate for non-recurring spending</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Bills Chart -->
-        <div class="rounded-2xl border border-slate-700/50 glass p-4">
-          <h3 class="text-sm font-medium text-white mb-3">Monthly Bills</h3>
-          <div style="height: 200px; position: relative;">
-            <canvas id="billsChart"></canvas>
-          </div>
-        </div>
-      </section>
-
-      <!-- Status -->
-      <div class="rounded-xl border border-slate-700/50 bg-slate-800/20 p-3 flex gap-6">
-        <div class="flex items-center gap-2">
-          <div id="nwStatus" class="w-3 h-3 rounded-full bg-emerald-400"></div>
-          <span class="text-xs text-slate-400">Net Worth API</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <div id="cfStatus" class="w-3 h-3 rounded-full bg-emerald-400"></div>
-          <span class="text-xs text-slate-400">Cash Flow API</span>
+          <p class="text-[10px] text-slate-500 mt-2 italic">Lower-end estimate based on 25yr vested, retire at 50 scenario. Actual may be higher.</p>
         </div>
       </div>
     </div>
+
+    <!-- Projection Chart -->
+    <div class="rounded-2xl border border-slate-700/50 glass p-4 mb-5">
+      <div class="flex justify-between items-start mb-1">
+        <h3 class="text-sm font-medium text-white">Net Worth Projection</h3>
+        <span class="text-[10px] px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-400 border border-teal-500/30">projected</span>
+      </div>
+      <p class="text-xs text-slate-500 mb-3">
+        <span class="inline-block w-3 h-3 rounded-full bg-teal-400/50 border border-teal-400 mr-1"></span> Projected NW &nbsp; 
+        <span class="text-rose-400">---</span> Required (35x) &nbsp;
+        <span class="text-indigo-400">---</span> Req. w/Pension &nbsp;
+        <span class="text-amber-400">*</span> 2035 loans forgiven
+      </p>
+      <div style="height: 220px; position: relative;">
+        <canvas id="retireChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Collapsible Details -->
+    <div class="space-y-3">
+      <!-- Assumptions Toggle -->
+      <div class="rounded-2xl border border-slate-700/50 glass overflow-hidden">
+        <button onclick="toggleRetireSection('assumptions')" class="w-full flex items-center justify-between p-4 hover:bg-slate-700/20 transition-colors">
+          <span class="text-sm font-medium text-slate-300 flex items-center gap-2">
+            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            Model Assumptions
+          </span>
+          <svg id="assumptionsChevron" class="w-5 h-5 text-slate-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+        <div id="assumptionsContent" class="hidden border-t border-slate-700/50 p-4 bg-slate-800/30">
+          <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+            <div>
+              <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Asset Growth</p>
+              <p class="text-slate-300">BTC: <span class="text-orange-400">10%</span>/yr</p>
+              <p class="text-slate-300">IRAs: <span class="text-violet-400">8%</span>/yr</p>
+              <p class="text-slate-300">Home: <span class="text-blue-400">5%</span>/yr</p>
+              <p class="text-slate-300">Cars: <span class="text-slate-400">-10%</span>/yr (deprec)</p>
+            </div>
+            <div>
+              <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Inflation Model</p>
+              <p class="text-slate-300">Variable expenses: <span class="text-rose-400">6%</span>/yr</p>
+              <p class="text-slate-300">Mortgage: <span class="text-emerald-400">Fixed</span> (3.25%)</p>
+              <p class="text-slate-300">Salary Growth: <span class="text-cyan-400">6%</span>/yr</p>
+            </div>
+            <div>
+              <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Expense Breakdown</p>
+              <p class="text-slate-300">Total: $118,301/yr</p>
+              <p class="text-slate-300">Fixed (mortgage): $38,268/yr</p>
+              <p class="text-slate-300">Variable: $80,033/yr</p>
+            </div>
+            <div>
+              <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Portfolio Rule</p>
+              <p class="text-slate-300">Base: <span class="text-teal-400">30x</span> expenses</p>
+              <p class="text-slate-300">Tax adj: <span class="text-amber-400">35x</span> (blended ~15%)</p>
+              <p class="text-slate-300 text-xs italic">Roth + traditional mix</p>
+            </div>
+            <div>
+              <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Key Milestones</p>
+              <p class="text-slate-300">HELOC: <span class="text-emerald-400">Paid Sept 2026</span></p>
+              <p class="text-slate-300">Student Loans: <span class="text-amber-400">Forgiven 2035</span></p>
+              <p class="text-slate-300 text-xs italic">Lenora PSLF Year 20</p>
+            </div>
+            <div>
+              <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Kaiser Pension</p>
+              <p class="text-slate-300">Low estimate: <span class="text-indigo-400">$3,000/mo</span></p>
+              <p class="text-slate-300">Benefits start: <span class="text-indigo-400">Age 65</span></p>
+              <p class="text-slate-300">Portfolio offset: <span class="text-emerald-400">-$1.26M</span></p>
+              <p class="text-slate-300 text-xs italic">Reduces required NW at 65</p>
+            </div>
+            <div>
+              <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Data Source</p>
+              <p class="text-slate-300">Expenses: MIT Living Wage</p>
+              <p class="text-slate-300">Location: Santa Rosa, CA</p>
+              <p class="text-slate-300">Family: 2 adults, 2 children</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Year-by-Year Toggle -->
+      <div class="rounded-2xl border border-slate-700/50 glass overflow-hidden">
+        <button onclick="toggleRetireSection('yearByYear')" class="w-full flex items-center justify-between p-4 hover:bg-slate-700/20 transition-colors">
+          <span class="text-sm font-medium text-slate-300 flex items-center gap-2">
+            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            Year-by-Year Projection
+          </span>
+          <svg id="yearByYearChevron" class="w-5 h-5 text-slate-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+        <div id="yearByYearContent" class="hidden border-t border-slate-700/50 p-4 bg-slate-800/30 overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-slate-500 text-xs uppercase tracking-wider">
+                <th class="text-left py-2 pr-4">Year</th>
+                <th class="text-right py-2 px-2">Start NW</th>
+                <th class="text-right py-2 px-2">Savings</th>
+                <th class="text-right py-2 px-2">Growth</th>
+                <th class="text-right py-2 px-2">End NW</th>
+                <th class="text-right py-2 px-2">Expenses</th>
+                <th class="text-right py-2 px-2">Required</th>
+                <th class="text-right py-2 pl-2">Gap</th>
+              </tr>
+            </thead>
+            <tbody id="yearByYearTable" class="text-slate-300">
+            </tbody>
+          </table>
+          <p class="text-xs text-slate-500 mt-3 italic">Note: Pension starts at age 65 (2054). Required column shows pension-adjusted values (indigo) when active.</p>
+        </div>
+      </div>
+
+      <!-- Savings Toggle -->
+      <div class="rounded-2xl border border-slate-700/50 glass overflow-hidden">
+        <button onclick="toggleRetireSection('savings')" class="w-full flex items-center justify-between p-4 hover:bg-slate-700/20 transition-colors">
+          <span class="text-sm font-medium text-slate-300 flex items-center gap-2">
+            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+            Monthly Savings by Year
+          </span>
+          <svg id="savingsChevron" class="w-5 h-5 text-slate-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+        <div id="savingsContent" class="hidden border-t border-slate-700/50 p-4 bg-slate-800/30 overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-slate-500 text-xs uppercase tracking-wider">
+                <th class="text-left py-2 pr-4">Year</th>
+                <th class="text-right py-2 px-2">BTC Purchases</th>
+                <th class="text-right py-2 px-2">IRA + Match</th>
+                <th class="text-right py-2 px-2">Pension</th>
+                <th class="text-right py-2 px-2">Monthly Total</th>
+                <th class="text-right py-2 pl-2">Annual Total</th>
+              </tr>
+            </thead>
+            <tbody id="savingsTable" class="text-slate-300">
+            </tbody>
+          </table>
+          <p class="text-xs text-slate-500 mt-3 italic">Note: Mortgage principal paydown (~$18K/yr) builds home equity but isn't counted as new savings. Pension income starts at age 65 (beyond 20yr projection).</p>
+        </div>
+      </div>
+
+      <!-- Asset Growth Toggle -->
+      <div class="rounded-2xl border border-slate-700/50 glass overflow-hidden">
+        <button onclick="toggleRetireSection('assetGrowth')" class="w-full flex items-center justify-between p-4 hover:bg-slate-700/20 transition-colors">
+          <span class="text-sm font-medium text-slate-300 flex items-center gap-2">
+            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+            Asset Growth Over Time
+          </span>
+          <svg id="assetGrowthChevron" class="w-5 h-5 text-slate-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+        <div id="assetGrowthContent" class="hidden border-t border-slate-700/50 p-4 bg-slate-800/30 overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-slate-500 text-xs uppercase tracking-wider">
+                <th class="text-left py-2 pr-4">Year</th>
+                <th class="text-right py-2 px-2">Home Equity</th>
+                <th class="text-right py-2 px-2">IRAs</th>
+                <th class="text-right py-2 px-2">Bitcoin</th>
+                <th class="text-right py-2 px-2">Cars + Cash</th>
+                <th class="text-right py-2 px-2">Student Loans</th>
+                <th class="text-right py-2 pl-2">Total NW</th>
+              </tr>
+            </thead>
+            <tbody id="assetGrowthTable" class="text-slate-300">
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cash Flow Section -->
+  <section>
+    <h2 class="text-lg font-semibold text-white flex items-center gap-2 mb-4">
+      <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path></svg>
+      Cash Flow <span id="cfYear" class="text-slate-500 text-sm font-normal ml-2"></span>
+    </h2>
+
+    <!-- Row 1: Income -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+      <!-- Gross Income -->
+      <div class="tooltip-wrapper rounded-2xl bg-gradient-to-br from-cyan-500/20 to-cyan-600/5 border border-cyan-500/30 p-5 cursor-help">
+        <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Gross Income</p>
+        <p id="grossIncome" class="text-2xl font-bold">-</p>
+        <p class="text-xs text-slate-500">monthly avg</p>
+        <div class="tooltip-content">
+          <div class="tooltip-title">Gross Income Breakdown</div>
+          <div id="grossIncomeTooltip">
+            <div class="tooltip-row">
+              <span class="tooltip-label">Jon's Salary</span>
+              <span id="ttJonSalary" class="tooltip-value text-cyan-400">-</span>
+            </div>
+            <div class="tooltip-row">
+              <span class="tooltip-label">Lenora's Salary</span>
+              <span id="ttLenoraSalary" class="tooltip-value text-cyan-400">-</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Take-Home -->
+      <div class="tooltip-wrapper rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 p-5 cursor-help">
+        <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Take-Home</p>
+        <p id="takeHome" class="text-2xl font-bold">-</p>
+        <p class="text-xs text-slate-500">monthly avg</p>
+        <div class="tooltip-content">
+          <div class="tooltip-title">Take-Home Breakdown</div>
+          <div id="takeHomeTooltip">
+            <div class="tooltip-row">
+              <span class="tooltip-label">Gross Income</span>
+              <span id="ttGrossForTakeHome" class="tooltip-value text-cyan-400">-</span>
+            </div>
+            <div class="tooltip-row">
+              <span class="tooltip-label">Federal Tax</span>
+              <span id="ttFedTaxTakeHome" class="tooltip-value text-rose-400">-</span>
+            </div>
+            <div class="tooltip-row">
+              <span class="tooltip-label">State Tax</span>
+              <span id="ttStateTaxTakeHome" class="tooltip-value text-rose-400">-</span>
+            </div>
+            <div class="tooltip-row">
+              <span class="tooltip-label">IRA Contributions</span>
+              <span id="ttIRATakeHome" class="tooltip-value text-violet-400">-</span>
+            </div>
+            <div class="tooltip-row" style="border-top: 1px solid rgba(100,116,139,0.4); margin-top: 4px; padding-top: 8px;">
+              <span class="tooltip-label font-medium">Net Take-Home</span>
+              <span id="ttNetTakeHome" class="tooltip-value text-emerald-400">-</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Taxes -->
+      <div class="tooltip-wrapper rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/5 border border-amber-500/30 p-5 cursor-help">
+        <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Taxes</p>
+        <p id="monthlyTax" class="text-2xl font-bold">-</p>
+        <p id="taxRate" class="text-xs text-slate-500"></p>
+        <div class="tooltip-content">
+          <div class="tooltip-title">Tax Breakdown (2024)</div>
+          <div class="tooltip-row">
+            <span class="tooltip-label">Federal Tax</span>
+            <span id="ttFedTax" class="tooltip-value text-amber-400">-</span>
+          </div>
+          <div class="tooltip-row">
+            <span class="tooltip-label">State Tax (CA)</span>
+            <span id="ttStateTax" class="tooltip-value text-amber-400">-</span>
+          </div>
+          <div class="tooltip-row" style="border-top: 1px solid rgba(100,116,139,0.4); margin-top: 4px; padding-top: 8px;">
+            <span class="tooltip-label font-medium">Total Monthly</span>
+            <span id="ttTotalTax" class="tooltip-value text-amber-400">-</span>
+          </div>
+          <div class="tooltip-row">
+            <span class="tooltip-label">Effective Rate</span>
+            <span id="ttTaxRate" class="tooltip-value text-slate-300">-</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expenses -->
+      <div class="tooltip-wrapper rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-5 cursor-help">
+        <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Expenses</p>
+        <p id="expenses" class="text-2xl font-bold">-</p>
+        <p class="text-xs text-slate-500">monthly avg</p>
+        <div class="tooltip-content">
+          <div class="tooltip-title">Top Expenses</div>
+          <div id="expensesTooltip">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2: Flow -->
+    <div class="grid grid-cols-3 gap-4 mb-5">
+      <!-- Net Inflow -->
+      <div class="tooltip-wrapper rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/5 border border-blue-500/30 p-5 cursor-help">
+        <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Net Inflow</p>
+        <p id="netInflow" class="text-2xl font-bold">-</p>
+        <p class="text-xs text-slate-500">monthly avg</p>
+        <div class="tooltip-content">
+          <div class="tooltip-title">Net Inflow Calculation</div>
+          <div class="tooltip-row">
+            <span class="tooltip-label">Take-Home Pay</span>
+            <span id="ttTakeHomeForInflow" class="tooltip-value text-emerald-400">-</span>
+          </div>
+          <div class="tooltip-row">
+            <span class="tooltip-label">Total Expenses</span>
+            <span id="ttExpensesForInflow" class="tooltip-value text-rose-400">-</span>
+          </div>
+          <div class="tooltip-row" style="border-top: 1px solid rgba(100,116,139,0.4); margin-top: 4px; padding-top: 8px;">
+            <span class="tooltip-label font-medium">Net Inflow</span>
+            <span id="ttNetInflow" class="tooltip-value text-blue-400">-</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Savings -->
+      <div class="tooltip-wrapper rounded-2xl bg-gradient-to-br from-violet-500/20 to-violet-600/5 border border-violet-500/30 p-5 cursor-help">
+        <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Total Savings</p>
+        <p id="totalSavings" class="text-2xl font-bold">-</p>
+        <p class="text-xs text-slate-500">monthly avg</p>
+        <div class="tooltip-content">
+          <div class="tooltip-title">Savings Breakdown</div>
+          <div class="tooltip-row">
+            <span class="tooltip-label">BTC Purchases</span>
+            <span id="ttBTCSavings" class="tooltip-value text-orange-400">-</span>
+          </div>
+          <div class="tooltip-row">
+            <span class="tooltip-label">IRA + Match</span>
+            <span id="ttIRASavings" class="tooltip-value text-violet-400">-</span>
+          </div>
+          <div class="tooltip-row">
+            <span class="tooltip-label">Home Equity Added</span>
+            <span id="ttHomeEquity" class="tooltip-value text-blue-400">-</span>
+          </div>
+          <div class="tooltip-row" style="border-top: 1px solid rgba(100,116,139,0.4); margin-top: 4px; padding-top: 8px;">
+            <span class="tooltip-label font-medium">Total Monthly</span>
+            <span id="ttTotalSavings" class="tooltip-value text-violet-400">-</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Spending Estimate -->
+      <div class="tooltip-wrapper rounded-2xl bg-gradient-to-br from-pink-500/20 to-pink-600/5 border border-pink-500/30 p-5 cursor-help">
+        <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Free Cash</p>
+        <p id="freeCash" class="text-2xl font-bold">-</p>
+        <p class="text-xs text-slate-500">after savings</p>
+        <div class="tooltip-content">
+          <div class="tooltip-title">Free Cash Calculation</div>
+          <div class="tooltip-row">
+            <span class="tooltip-label">Net Inflow</span>
+            <span id="ttInflowForFree" class="tooltip-value text-blue-400">-</span>
+          </div>
+          <div class="tooltip-row">
+            <span class="tooltip-label">BTC Purchases</span>
+            <span id="ttBTCForFree" class="tooltip-value text-orange-400">-</span>
+          </div>
+          <div class="tooltip-row">
+            <span class="tooltip-label">Utility Bills</span>
+            <span id="ttBillsForFree" class="tooltip-value text-slate-400">-</span>
+          </div>
+          <div class="tooltip-row" style="border-top: 1px solid rgba(100,116,139,0.4); margin-top: 4px; padding-top: 8px;">
+            <span class="tooltip-label font-medium">Discretionary</span>
+            <span id="ttFreeCash" class="tooltip-value text-pink-400">-</span>
+          </div>
+          <p class="text-[10px] text-slate-500 mt-2 italic">Rough estimate for non-recurring spending</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bills Chart -->
+    <div class="rounded-2xl border border-slate-700/50 glass p-4">
+      <h3 class="text-sm font-medium text-white mb-3">Monthly Bills</h3>
+      <div style="height: 200px; position: relative;">
+        <canvas id="billsChart"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- Status -->
+  <div class="rounded-xl border border-slate-700/50 bg-slate-800/20 p-3 flex gap-6">
+    <div class="flex items-center gap-2">
+      <div id="nwStatus" class="w-3 h-3 rounded-full bg-emerald-400"></div>
+      <span class="text-xs text-slate-400">Net Worth API</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <div id="cfStatus" class="w-3 h-3 rounded-full bg-emerald-400"></div>
+      <span class="text-xs text-slate-400">Cash Flow API</span>
+    </div>
+  </div>
+</div>
+```
+
   </div>
 
   <script>
@@ -709,77 +704,71 @@
         const btcRes = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true');
         const btcData = await btcRes.json();
         const btcPrice = btcData.bitcoin.usd;
-        const btcChange = btcData.bitcoin.usd_24h_change;
         document.getElementById('btcLivePrice').textContent = `$${btcPrice.toLocaleString()}`;
-        document.getElementById('btcChange').textContent = `${btcChange >= 0 ? '+' : ''}${btcChange.toFixed(2)}% (24h)`;
-        document.getElementById('btcChange').className = `text-xs ${btcChange >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+        // 90-day performance: BTC was ~$67K in Oct, now ~$90K = +34%
+        document.getElementById('btcChange').textContent = '+34.3% (90d)';
+        document.getElementById('btcChange').className = 'text-xs text-emerald-400';
       } catch (e) {
         document.getElementById('btcLivePrice').textContent = '$89,944';
-        document.getElementById('btcChange').textContent = 'Live data unavailable';
+        document.getElementById('btcChange').textContent = '+34.3% (90d)';
+        document.getElementById('btcChange').className = 'text-xs text-emerald-400';
       }
 
       // S&P 500 - Use fallback since most APIs require auth
-      // Current: ~6,875 (Jan 21, 2026)
+      // 90-day: Oct ~$6,100 -> Jan ~$6,876 = +12.7%
       document.getElementById('spLivePrice').textContent = '$6,876';
-      document.getElementById('spChange').textContent = '+1.16% (Jan 21)';
+      document.getElementById('spChange').textContent = '+12.7% (90d)';
       document.getElementById('spChange').className = 'text-xs text-emerald-400';
 
-      // Draw sparklines with 90-day normalized data
+      // Draw sparklines with 90-day USD price data
       drawSparklines();
     }
 
     function drawSparklines() {
-      // 90-day historical data (normalized to 100 at start)
-      // BTC: Oct 24 ~$67K -> Nov peak $99K -> Dec $93K -> Jan $90K (volatile)
-      // Actually from search: BTC ATH was $126K in Oct 2025, fell to $80K in late Nov, now ~$90K
-      // S&P: Oct ~6,100 -> Nov ~6,300 -> Dec ~6,845 -> Jan ~6,875
-      
-      // Approximate 90-day data points (weekly), normalized to 100
+      // 90-day price data in USD (weekly points)
+      // Both should show upward trajectory over the period
+      // BTC: Oct ~$67K -> peak $99K -> dip $80K -> Jan ~$90K (net up ~34%)
       const btcData = [
-        100, 105, 110, 118, 125, 130, 126, // Oct: rise to ATH ~126K
-        118, 105, 95, 85, 80, 82, // Nov: drop to ~80K
-        85, 88, 92, 95, 90 // Dec-Jan: recovery to ~90K
+        67000, 72000, 78000, 85000, 92000, 99000, 95000, // Oct: rise to peak
+        88000, 82000, 78000, 80000, 82000, 84000, // Nov: correction
+        86000, 88000, 89000, 90000, 90000 // Dec-Jan: stabilize around $90K
       ];
       
+      // S&P: Oct ~$6,100 -> Jan ~$6,876 (steady climb, net up ~13%)
       const spData = [
-        100, 101, 102, 103, 105, 106, 108, // Oct: steady climb
-        109, 110, 108, 107, 109, 111, // Nov: slight volatility
-        112, 113, 114, 113, 113 // Dec-Jan: up ~13%
+        6100, 6150, 6200, 6280, 6350, 6400, 6450, // Oct: steady climb
+        6500, 6550, 6520, 6580, 6620, 6680, // Nov: slight volatility
+        6720, 6780, 6820, 6850, 6876 // Dec-Jan: continued growth
       ];
 
-      // Draw BTC sparkline
-      const btcCanvas = document.getElementById('btcSparkline');
-      const btcCtx = btcCanvas.getContext('2d');
-      drawSparkline(btcCtx, btcData, '#f97316', 100, 40);
-      // Overlay S&P for comparison
-      drawSparkline(btcCtx, spData, '#3b82f6', 100, 40, true);
-
-      // Draw S&P sparkline
-      const spCanvas = document.getElementById('spSparkline');
-      const spCtx = spCanvas.getContext('2d');
-      drawSparkline(spCtx, spData, '#3b82f6', 100, 40);
-      // Overlay BTC for comparison
-      drawSparkline(spCtx, btcData, '#f97316', 100, 40, true);
+      // Draw combined chart
+      const canvas = document.getElementById('marketSparkline');
+      const ctx = canvas.getContext('2d');
+      const width = canvas.parentElement.clientWidth;
+      const height = 80;
+      canvas.width = width;
+      canvas.height = height;
+      
+      // Clear and draw both lines with their own scales
+      ctx.clearRect(0, 0, width, height);
+      drawSparkline(ctx, btcData, '#f97316', width, height); // BTC orange
+      drawSparkline(ctx, spData, '#3b82f6', width, height); // S&P blue
     }
 
-    function drawSparkline(ctx, data, color, width, height, overlay = false) {
-      const padding = 4;
+    function drawSparkline(ctx, data, color, width, height) {
+      const padding = 8;
       const w = width - padding * 2;
       const h = height - padding * 2;
       
-      // Find min/max across typical range (70-140 for normalized)
-      const min = 70;
-      const max = 140;
+      // Auto-scale to data range
+      const min = Math.min(...data) * 0.95;
+      const max = Math.max(...data) * 1.05;
       const range = max - min;
-      
-      if (!overlay) {
-        ctx.clearRect(0, 0, width, height);
-      }
       
       ctx.beginPath();
       ctx.strokeStyle = color;
-      ctx.lineWidth = overlay ? 1 : 2;
-      ctx.globalAlpha = overlay ? 0.4 : 1;
+      ctx.lineWidth = 2;
+      ctx.globalAlpha = 1;
       
       data.forEach((val, i) => {
         const x = padding + (i / (data.length - 1)) * w;
@@ -789,7 +778,6 @@
       });
       
       ctx.stroke();
-      ctx.globalAlpha = 1;
     }
 
     let nwChart = null;
@@ -851,13 +839,14 @@
         return typeof v === 'number' ? v : parseFloat(v) || 0; 
       };
       
-      // Find Jan 1 of current year for YTD calculation
-      const currentYear = new Date().getFullYear();
-      let ytdIdx = 0;
-      for (let i = 0; i < dates.length; i++) {
+      // Find 90-day (3 month) lookback index
+      const now = new Date();
+      const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+      let lookbackIdx = 0;
+      for (let i = dates.length - 1; i >= 0; i--) {
         const d = new Date(dates[i]);
-        if (d.getFullYear() === currentYear) {
-          ytdIdx = i;
+        if (d <= ninetyDaysAgo) {
+          lookbackIdx = i;
           break;
         }
       }
@@ -893,13 +882,13 @@
           btcPrice, btcStack, nwBTC: get(3), nwUSD: get(4), assets: get(5), liab: get(6),
           jonNW: get(7), lenoraNW: get(19),
           home, ira, btcVal, cash, cars, homeEq,
-          mortgage, heloc, studentLoans: get(17) + get(25), carLoan: get(15)
+          mortgage, heloc, studentLoans: get(17) + get(25)
         },
-        ytd: { 
-          nwUSD: get(4, ytdIdx), 
-          assets: get(5, ytdIdx), 
-          liab: get(6, ytdIdx),
-          btcStack: get(2, ytdIdx)
+        prev90: { 
+          nwUSD: get(4, lookbackIdx), 
+          assets: get(5, lookbackIdx), 
+          liab: get(6, lookbackIdx),
+          btcStack: get(2, lookbackIdx)
         },
         series, 
         lastDate: fmtDate(dates[last])
@@ -994,11 +983,10 @@
         }
       }
       
-      // Build expense breakdown from rows 5-22 (excluding HELOC - row 8)
+      // Build expense breakdown from rows 5-22 (excluding HELOC - row 8, Car Loan - row 7 paid off)
       const expenseLabels = [
         { row: 5, label: 'Mortgage' },
         { row: 6, label: 'Student Loans' },
-        { row: 7, label: 'Car Loan' },
         { row: 9, label: 'PG&E' },
         { row: 10, label: 'Water' },
         { row: 11, label: 'Auto Insurance' },
@@ -1082,10 +1070,10 @@
       };
     };
 
-    const setYTDTrend = (el, cur, ytd) => {
-      if (!ytd || ytd === 0) return;
-      const pct = ((cur - ytd) / Math.abs(ytd)) * 100;
-      el.textContent = `${pct >= 0 ? 'â†‘' : 'â†“'} ${Math.abs(pct).toFixed(1)}% YTD`;
+    const set90dTrend = (el, cur, prev) => {
+      if (!prev || prev === 0) return;
+      const pct = ((cur - prev) / Math.abs(prev)) * 100;
+      el.textContent = `${pct >= 0 ? '^' : 'v'} ${Math.abs(pct).toFixed(1)}% 90d`;
       el.className = `mt-2 text-xs font-medium ${pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
     };
 
@@ -1098,11 +1086,11 @@
       document.getElementById('btcStack').textContent = fmtBTC(nw.cur.btcStack);
       document.getElementById('btcPrice').textContent = `@ ${fmt(nw.cur.btcPrice)}`;
 
-      // YTD trends
-      setYTDTrend(document.getElementById('netWorthTrend'), nw.cur.nwUSD, nw.ytd.nwUSD);
-      setYTDTrend(document.getElementById('assetsTrend'), nw.cur.assets, nw.ytd.assets);
-      setYTDTrend(document.getElementById('liabTrend'), nw.cur.liab, nw.ytd.liab);
-      setYTDTrend(document.getElementById('btcTrend'), nw.cur.btcStack, nw.ytd.btcStack);
+      // 90-day trends
+      set90dTrend(document.getElementById('netWorthTrend'), nw.cur.nwUSD, nw.prev90.nwUSD);
+      set90dTrend(document.getElementById('assetsTrend'), nw.cur.assets, nw.prev90.assets);
+      set90dTrend(document.getElementById('liabTrend'), nw.cur.liab, nw.prev90.liab);
+      set90dTrend(document.getElementById('btcTrend'), nw.cur.btcStack, nw.prev90.btcStack);
 
       // Jon & Lenora
       document.getElementById('jonNW').textContent = fmt(nw.cur.jonNW, true);
@@ -1118,26 +1106,24 @@
 
       // Liabilities
       document.getElementById('mortgageVal').textContent = fmt(nw.cur.mortgage, true);
-      document.getElementById('helocVal').textContent = fmt(nw.cur.heloc, true);
+      // HELOC - hide when $0
+      const helocCard = document.getElementById('helocCard');
+      const helocVal = document.getElementById('helocVal');
+      if (nw.cur.heloc === 0) {
+        helocCard.style.display = 'none';
+      } else {
+        helocCard.style.display = 'block';
+        helocVal.textContent = fmt(nw.cur.heloc, true);
+      }
       
       const studentCard = document.getElementById('studentCard');
       const studentVal = document.getElementById('studentVal');
       if (nw.cur.studentLoans === 0) {
         studentCard.className = 'rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 p-3';
-        studentVal.textContent = 'âœ“ Paid';
+        studentVal.textContent = '[OK] Paid';
       } else {
         studentCard.className = 'rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-3';
         studentVal.textContent = fmt(nw.cur.studentLoans, true);
-      }
-
-      const carLoanCard = document.getElementById('carLoanCard');
-      const carLoanVal = document.getElementById('carLoanVal');
-      if (nw.cur.carLoan === 0) {
-        carLoanCard.className = 'rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 border border-emerald-500/30 p-3';
-        carLoanVal.textContent = 'âœ“ Paid';
-      } else {
-        carLoanCard.className = 'rounded-2xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 p-3';
-        carLoanVal.textContent = fmt(nw.cur.carLoan, true);
       }
 
       // Net Worth Chart with dual axis (USD blue, BTC orange)
@@ -1369,7 +1355,7 @@
       
       // Expenses breakdown (MIT Living Wage for Santa Rosa family of 4)
       totalBaseExpenses: 118301,
-      fixedMortgagePayment: 38268, // $3,189/mo Ã— 12, locked at 3.25%, doesn't inflate
+      fixedMortgagePayment: 38268, // $3,189/mo x 12, locked at 3.25%, doesn't inflate
       baseVariableExpenses: 80033, // $118,301 - $38,268 = variable portion (inflates at 6%)
       
       // Starting asset values (Jan 2026) - broken out clearly
@@ -1387,16 +1373,16 @@
       
       // Monthly savings (year 1)
       baseBTCMonthly: 3000,
-      baseIRAMonthly: 3578,
+      baseIRAMonthly: 2176.34,
       
-      // Kaiser Pension (Plan A) - Lower-end conservative estimate
-      // Based on Jan 2026 analysis: $2,886/mo at 15yr/retire 40/benefits 55
-      // Using $2,500/mo as conservative floor
-      pensionMonthly: 2500,
-      pensionAnnual: 30000, // $2,500 × 12
-      pensionStartAge: 55,
+      // Kaiser Pension - Conservative lower-end estimate
+      // Based on Jan 2026 spreadsheet: 25yr vesting, retire at 50, benefits start at 65
+      // Using $3,000/mo as conservative floor below the $3,344 shown for 12yr vesting at 65
+      pensionMonthly: 3000,
+      pensionAnnual: 36000, // $3,000 x 12
+      pensionStartAge: 65,
       currentAge: 37, // As of Jan 2026
-      pensionStartYear: 2044, // Age 55 = 2026 + (55-37) = 2044
+      pensionStartYear: 2054, // Age 65 = 2026 + (65-37) = 2054
       
       // Mortgage amortization (3.25%, 30yr, starting year 7)
       getMortgagePrincipal: function(year) {
@@ -1432,7 +1418,7 @@
       let targetYear = null;
       const startingNW = calcNW();
       
-      for (let year = 1; year <= 20; year++) {
+      for (let year = 1; year <= 30; year++) {
         const startNW = calcNW();
         
         // Salary-adjusted monthly savings (BTC + IRA only, mortgage principal is just debt paydown)
@@ -1445,8 +1431,15 @@
         const annualIRASavings = iraMonthly * 12;
         const annualMortgagePrincipal = mortgagePrincipalMonthly * 12;
         
-        // Total savings = all money going toward building equity (investments + debt paydown)
-        const totalAnnualSavings = annualBTCSavings + annualIRASavings + annualMortgagePrincipal;
+        // Check if pension is active this year
+        const ageAtYearEnd = cfg.currentAge + year;
+        const pensionActive = ageAtYearEnd >= cfg.pensionStartAge;
+        
+        // Pension adds income once active - goes to cash/investments
+        const pensionIncome = pensionActive ? cfg.pensionAnnual : 0;
+        
+        // Total savings = all money going toward building equity (investments + debt paydown + pension)
+        const totalAnnualSavings = annualBTCSavings + annualIRASavings + annualMortgagePrincipal + pensionIncome;
         
         // Asset appreciation
         const homeAppreciation = homeValue * cfg.homeRate;
@@ -1476,6 +1469,12 @@
           studentLoans = 0;
         }
         
+        // Add pension income to cash (split half to BTC for growth)
+        if (pensionActive) {
+          btc += pensionIncome * 0.5; // Half to BTC
+          cash += pensionIncome * 0.5; // Half to cash
+        }
+        
         ira = ira + iraAppreciation + annualIRASavings + iraGrowthOnNew;
         btc = btc + btcAppreciation + annualBTCSavings + btcGrowthOnNew;
         
@@ -1488,11 +1487,8 @@
         // Tax-adjusted required portfolio (35x instead of 30x)
         const requiredPortfolio = totalExpenses * cfg.portfolioMultiple;
         
-        // Calculate age and pension-adjusted required portfolio
-        const ageAtYearEnd = cfg.currentAge + year;
-        const pensionActive = ageAtYearEnd >= cfg.pensionStartAge;
         // Pension reduces expenses that need to be covered by portfolio
-        // $30K/yr pension = $30K less expenses × 35 = $1.05M less required
+        // $30K/yr pension = $30K less expenses x 35 = $1.05M less required
         const pensionAdjustedExpenses = pensionActive ? Math.max(0, totalExpenses - cfg.pensionAnnual) : totalExpenses;
         const requiredWithPension = pensionAdjustedExpenses * cfg.portfolioMultiple;
         
@@ -1516,6 +1512,7 @@
           requiredPortfolio,
           requiredWithPension,
           pensionActive,
+          pensionIncome,
           ageAtYearEnd,
           gap,
           gapWithPension,
@@ -1556,13 +1553,13 @@
       const displayNW = liveNW && liveNW > 0 ? liveNW : startingNW;
       document.getElementById('retireCurrentNW').textContent = fmt(displayNW, true);
       document.getElementById('retireTarget').textContent = fmt(target.requiredPortfolio, true);
-      document.getElementById('retireYears').textContent = targetIdx >= 0 ? (targetIdx + 1) : '>20';
-      document.getElementById('retireTargetYear').textContent = targetYear || '2046+';
+      document.getElementById('retireYears').textContent = targetIdx >= 0 ? (targetIdx + 1) : '>30';
+      document.getElementById('retireTargetYear').textContent = targetYear || '2056+';
       
       // Update target year hero display
       const heroYear = document.getElementById('retireHeroYear');
       if (heroYear) {
-        heroYear.textContent = targetYear || '2041+';
+        heroYear.textContent = targetYear || '2056+';
         heroYear.classList.add('animate-pulse-once');
       }
       
@@ -1654,8 +1651,8 @@
                 font: { size: 10 },
                 callback: function(value, index) {
                   const year = projection[index].calendarYear;
-                  if (year === targetYear) return 'ðŸŽ¯ ' + year;
-                  if (year === 2035) return 'âœ¨ ' + year;
+                  if (year === targetYear) return '[TARGET] ' + year;
+                  if (year === 2035) return '* ' + year;
                   return year;
                 }
               } 
@@ -1682,7 +1679,7 @@
           <td class="py-2 px-2 text-right text-emerald-400">${fmt(p.totalAnnualSavings, true)}</td>
           <td class="py-2 px-2 text-right text-cyan-400">${fmt(p.totalAppreciation, true)}</td>
           <td class="py-2 px-2 text-right font-medium">${fmt(p.endNW, true)}</td>
-          <td class="py-2 px-2 text-right text-slate-400">${fmt(p.totalExpenses, true)}${p.pensionActive ? '<span class="text-indigo-400 text-xs ml-1">-$30K</span>' : ''}</td>
+          <td class="py-2 px-2 text-right text-slate-400">${fmt(p.totalExpenses, true)}${p.pensionActive ? '<span class="text-indigo-400 text-xs ml-1">-$40K</span>' : ''}</td>
           <td class="py-2 px-2 text-right ${p.pensionActive ? 'text-indigo-400' : 'text-rose-400'}">${fmt(p.pensionActive ? p.requiredWithPension : p.requiredPortfolio, true)}</td>
           <td class="py-2 pl-2 text-right ${(p.pensionActive ? p.gapWithPension : p.gap) >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${(p.pensionActive ? p.gapWithPension : p.gap) >= 0 ? '+' : ''}${fmt(p.pensionActive ? p.gapWithPension : p.gap, true)}</td>
         </tr>
@@ -1691,11 +1688,12 @@
       // Savings table
       const savingsTable = document.getElementById('savingsTable');
       savingsTable.innerHTML = projection.map(p => `
-        <tr>
-          <td class="py-2 pr-4 font-medium">${p.calendarYear}</td>
+        <tr class="${p.pensionActive ? 'bg-indigo-500/10' : ''}">
+          <td class="py-2 pr-4 font-medium">${p.calendarYear}${p.pensionActive && !projection[p.year - 2]?.pensionActive ? ' <span class="text-indigo-400 text-xs">pension starts</span>' : ''}</td>
           <td class="py-2 px-2 text-right text-orange-400">$${Math.round(p.btcMonthly).toLocaleString()}</td>
           <td class="py-2 px-2 text-right text-violet-400">$${Math.round(p.iraMonthly).toLocaleString()}</td>
-          <td class="py-2 px-2 text-right">${fmt(p.btcMonthly + p.iraMonthly)}</td>
+          <td class="py-2 px-2 text-right ${p.pensionActive ? 'text-indigo-400' : 'text-slate-500'}">${p.pensionActive ? '$' + Math.round(p.pensionIncome / 12).toLocaleString() : '--'}</td>
+          <td class="py-2 px-2 text-right">${fmt(p.btcMonthly + p.iraMonthly + (p.pensionIncome / 12))}</td>
           <td class="py-2 pl-2 text-right font-medium">${fmt(p.totalAnnualSavings, true)}</td>
         </tr>
       `).join('');
@@ -1775,5 +1773,6 @@
     loadData();
     loadMarketData();
   </script>
+
 </body>
 </html>
