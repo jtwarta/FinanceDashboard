@@ -419,7 +419,6 @@
                 <th class="text-left py-2 pr-4">Year</th>
                 <th class="text-right py-2 px-2">BTC Purchases</th>
                 <th class="text-right py-2 px-2">IRA + Match</th>
-                <th class="text-right py-2 px-2">Pension</th>
                 <th class="text-right py-2 px-2">Monthly Total</th>
                 <th class="text-right py-2 pl-2">Annual Total</th>
               </tr>
@@ -427,7 +426,7 @@
             <tbody id="savingsTable" class="text-slate-300">
             </tbody>
           </table>
-          <p class="text-xs text-slate-500 mt-3 italic">Note: Mortgage principal paydown (~$18K/yr) builds home equity but isn't counted as new savings. Pension income starts at age 65 (beyond 20yr projection).</p>
+          <p class="text-xs text-slate-500 mt-3 italic">Note: Mortgage principal paydown (~$18K/yr) builds home equity but isn't counted as new savings.</p>
         </div>
       </div>
 
@@ -1444,8 +1443,9 @@
         // Pension adds income once active - goes to cash/investments
         const pensionIncome = pensionActive ? cfg.pensionAnnual : 0;
         
-        // Total savings = all money going toward building equity (investments + debt paydown + pension)
-        const totalAnnualSavings = annualBTCSavings + annualIRASavings + annualMortgagePrincipal + pensionIncome;
+        // Total savings = money going toward building equity (investments + debt paydown)
+        // Note: Mortgage principal paydown builds home equity
+        const totalAnnualSavings = annualBTCSavings + annualIRASavings + annualMortgagePrincipal;
         
         // Asset appreciation
         const homeAppreciation = homeValue * cfg.homeRate;
@@ -1464,9 +1464,8 @@
         mortgageBalance = mortgageBalance - annualMortgagePrincipal;
         cars = cars * 0.90; // 10% depreciation
         
-        // HELOC paid off at end of Year 1
+        // HELOC paid off at end of Year 1 (from net inflow/savings, not cash reserve)
         if (year === 1 && helocBalance > 0) {
-          cash -= helocBalance;
           helocBalance = 0;
         }
         
@@ -1475,11 +1474,8 @@
           studentLoans = 0;
         }
         
-        // Add pension income to cash (split half to BTC for growth)
-        if (pensionActive) {
-          btc += pensionIncome * 0.5; // Half to BTC
-          cash += pensionIncome * 0.5; // Half to cash
-        }
+        // Pension benefit is modeled via reduced required portfolio (requiredWithPension),
+        // not by adding income to assets during accumulation phase
         
         ira = ira + iraAppreciation + annualIRASavings + iraGrowthOnNew;
         btc = btc + btcAppreciation + annualBTCSavings + btcGrowthOnNew;
@@ -1694,12 +1690,11 @@
       // Savings table
       const savingsTable = document.getElementById('savingsTable');
       savingsTable.innerHTML = projection.map(p => `
-        <tr class="${p.pensionActive ? 'bg-indigo-500/10' : ''}">
-          <td class="py-2 pr-4 font-medium">${p.calendarYear}${p.pensionActive && !projection[p.year - 2]?.pensionActive ? ' <span class="text-indigo-400 text-xs">pension starts</span>' : ''}</td>
+        <tr>
+          <td class="py-2 pr-4 font-medium">${p.calendarYear}</td>
           <td class="py-2 px-2 text-right text-orange-400">$${Math.round(p.btcMonthly).toLocaleString()}</td>
           <td class="py-2 px-2 text-right text-violet-400">$${Math.round(p.iraMonthly).toLocaleString()}</td>
-          <td class="py-2 px-2 text-right ${p.pensionActive ? 'text-indigo-400' : 'text-slate-500'}">${p.pensionActive ? '$' + Math.round(p.pensionIncome / 12).toLocaleString() : '--'}</td>
-          <td class="py-2 px-2 text-right">${fmt(p.btcMonthly + p.iraMonthly + (p.pensionIncome / 12))}</td>
+          <td class="py-2 px-2 text-right">${fmt(p.btcMonthly + p.iraMonthly)}</td>
           <td class="py-2 pl-2 text-right font-medium">${fmt(p.totalAnnualSavings, true)}</td>
         </tr>
       `).join('');
