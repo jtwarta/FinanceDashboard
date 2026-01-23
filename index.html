@@ -336,7 +336,7 @@
               <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Inflation Model</p>
               <p class="text-slate-300">Variable expenses: <span class="text-rose-400">6%</span>/yr</p>
               <p class="text-slate-300">Mortgage: <span class="text-emerald-400">Fixed</span> (3.25%)</p>
-              <p class="text-slate-300">Salary Growth: <span class="text-cyan-400">6%</span>/yr</p>
+              <p class="text-slate-300">Salary Growth: Jon <span class="text-cyan-400">3%</span>, Lenora <span class="text-violet-400">5%</span>/yr</p>
             </div>
             <div>
               <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Expense Breakdown</p>
@@ -716,7 +716,7 @@
 
       // S&P 500 - Use fallback since most APIs require auth
       // 90-day: Oct ~$6,100 -> Jan ~$6,876 = +12.7%
-      document.getElementById('spLivePrice').textContent = '$6,876';
+      document.getElementById('spLivePrice').textContent = '6,876';
       document.getElementById('spChange').textContent = '+12.7% (90d)';
       document.getElementById('spChange').className = 'text-xs text-emerald-400';
 
@@ -1073,7 +1073,7 @@
     const set90dTrend = (el, cur, prev) => {
       if (!prev || prev === 0) return;
       const pct = ((cur - prev) / Math.abs(prev)) * 100;
-      el.textContent = `${pct >= 0 ? '^' : 'v'} ${Math.abs(pct).toFixed(1)}% 90d`;
+      el.textContent = `${pct >= 0 ? '↑' : '↓'} ${Math.abs(pct).toFixed(1)}% 90d`;
       el.className = `mt-2 text-xs font-medium ${pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
     };
 
@@ -1344,7 +1344,8 @@
       iraRate: 0.08,
       homeRate: 0.05,
       variableInflationRate: 0.06, // Only on non-mortgage expenses
-      salaryGrowthRate: 0.06,
+      jonSalaryGrowthRate: 0.03,
+      lenoraSalaryGrowthRate: 0.05,
       
       // Tax-adjusted portfolio rule
       // Assume 15% effective tax rate on blended withdrawals (mix of traditional IRA + tax-free sources)
@@ -1372,8 +1373,9 @@
       studentLoanForgivenessYear: 9, // Year 9 = 2035
       
       // Monthly savings (year 1)
-      baseBTCMonthly: 3000,
-      baseIRAMonthly: 2176.34,
+      baseBTCMonthly: 3000, // Jon's BTC purchases - grows at Jon's rate
+      baseJonIRAMonthly: 1088.17, // Jon's IRA + match
+      baseLenIRAMonthly: 1088.17, // Lenora's IRA + match
       
       // Kaiser Pension - Conservative lower-end estimate
       // Based on Jan 2026 spreadsheet: 25yr vesting, retire at 50, benefits start at 65
@@ -1422,9 +1424,13 @@
         const startNW = calcNW();
         
         // Salary-adjusted monthly savings (BTC + IRA only, mortgage principal is just debt paydown)
-        const salaryMultiplier = Math.pow(1 + cfg.salaryGrowthRate, year - 1);
-        const btcMonthly = cfg.baseBTCMonthly * salaryMultiplier;
-        const iraMonthly = cfg.baseIRAMonthly * salaryMultiplier;
+        // Jon: 3% salary growth, Lenora: 5% salary growth
+        const jonSalaryMultiplier = Math.pow(1 + cfg.jonSalaryGrowthRate, year - 1);
+        const lenSalaryMultiplier = Math.pow(1 + cfg.lenoraSalaryGrowthRate, year - 1);
+        const btcMonthly = cfg.baseBTCMonthly * jonSalaryMultiplier; // Jon's BTC purchases
+        const jonIRAMonthly = cfg.baseJonIRAMonthly * jonSalaryMultiplier;
+        const lenIRAMonthly = cfg.baseLenIRAMonthly * lenSalaryMultiplier;
+        const iraMonthly = jonIRAMonthly + lenIRAMonthly;
         const mortgagePrincipalMonthly = cfg.getMortgagePrincipal(year);
         
         const annualBTCSavings = btcMonthly * 12;
